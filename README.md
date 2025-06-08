@@ -1,79 +1,43 @@
-✈️ Ethiopian Airlines Exam Prep App
-A modern, full-stack exam preparation platform built for AMT, Hostess, and Pilot applicants of Ethiopian Airlines.
+# ✈️ Ethiopian Airlines Exam Prep App
+
+A modern, full-stack **exam preparation platform** for aspiring **AMT**, **Hostess**, and **Pilot** applicants of Ethiopian Airlines.
 
 Built with:
 
-Next.js (App Router)
+- **Next.js (App Router)**
+- **Drizzle ORM + PostgreSQL**
+- **NextAuth (Email & Password Auth)**
+- **UploadThing** (for image uploads)
+- **Shadcn UI** (beautiful component library)
+- **Tailwind CSS** (utility-first CSS)
+- Deployed on a **VPS server** with Nginx + PM2
 
-Drizzle ORM + PostgreSQL
+---
 
-NextAuth (Email & Password Auth)
+## 🚀 Features to be done
 
-UploadThing (for image uploads)
+- ✈️ Prepare for AMT, Hostess, and Pilot entrance exams
+- 📝 Admin dashboard to create, edit, and manage MCQ questions with images
+- 📊 Timed exams with live progress and scoring
+- 🎯 Practice mode by category or subject
+- 🏆 Leaderboards and progress tracking
+- 📷 Upload and display images (mechanical diagrams, etc.) via UploadThing
+- 🌍 Multi-language support (English + Amharic)
+- 🔐 Secure email/password login with NextAuth
+- 📱 Fully responsive and mobile-first
 
-Shadcn UI (beautiful component library)
+---
 
-Tailwind CSS (utility-first CSS)
+## 🖥️ Tech Stack
 
-Deployed on a VPS server with Nginx + PM2
+- **Framework:** [Next.js](https://nextjs.org/)
+- **Auth:** [NextAuth.js](https://next-auth.js.org/)
+- **ORM:** [Drizzle ORM](https://orm.drizzle.team/)
+- **Database:** PostgreSQL
+- **Storage:** [UploadThing](https://uploadthing.com/)
+- **UI Components:** [Shadcn UI](https://ui.shadcn.com/)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
 
-🛠️ Future Tasks & Roadmap
-✈️ Core Features to Improve
- Build a beautiful Landing Page (Next.js + Shadcn + Tailwind) with aircraft imagery
+---
 
- Add Admin Analytics Dashboard with:
 
-User engagement tracking
-
-Question difficulty analysis
-
-Most missed questions chart
-
- Implement custom exam builder (admin selects questions to create mock exams)
-
- Add bulk question upload from CSV/DOCX
-
- Add question version history and changelog
-
-👨‍🎓 User Experience
- Add Practice by Topic / Subject
-
- Add Bookmark Questions feature
-
- Implement Offline Mode (PWA)
-
- Add Dark Mode toggle
-
- Add Leaderboard for each batch (AMT / Hostess / Pilot)
-
-🖼 UploadThing Improvements
- Allow multiple images per question
-
- Add image gallery preview on question review
-
- Compress/optimize uploaded images
-
-🌍 Localization & Accessibility
- Add Amharic language toggle
-
- Add text-to-speech option for questions
-
- Improve keyboard navigation and screen reader support
-
-🔐 Security & Anti-Cheat
- Add tab-switch detection and warning during exam
-
- Implement auto-submit on timer expiration or cheating attempt
-
- Add captcha on login & registration (optional)
-
-🛠 Technical Improvements
- Add full unit tests (Jest + Testing Library)
-
- Add E2E tests (Playwright or Cypress)
-
- Optimize Next.js performance (ISR / caching) for landing page
-
- Containerize app with Docker for easier deployment
-
- Setup CI/CD pipeline for automatic deployment
