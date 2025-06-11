@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plane, Users, Award, Clock } from "lucide-react";
+import { Plane, PlaneTakeoff, Wrench, Heart } from "lucide-react";
 import Navbar from "./nav-bar";
 
 const Hero = () => {
@@ -9,13 +9,22 @@ const Hero = () => {
       <Navbar />
       <section
         id="home"
-        className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-slate-900 dark:via-blue-900 dark:to-indigo-900 relative overflow-hidden pt-16"
+        className="min-h-screen  bg-gradient-to-br from-emerald-50 to-teal-100 dark:from-slate-900 dark:to-emerald-900 relative overflow-hidden pt-16"
       >
+        {/* Background Image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 dark:opacity-10"
+          style={{
+            backgroundImage:
+              'url("https://wallpapers.com/images/featured/ethiopian-airlines-85xqok5uoxxzzpk8.jpg")',
+          }}
+        ></div>
+
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-green-400/20 to-blue-400/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-yellow-400/10 to-orange-400/10 rounded-full blur-3xl animate-pulse delay-500"></div>
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-emerald-300/20 to-emerald-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-teal-400/10 to-emerald-400/10 rounded-full blur-3xl animate-pulse delay-500"></div>
         </div>
 
         {/* Grid Pattern */}
@@ -27,13 +36,13 @@ const Hero = () => {
             <div className="text-center mb-20">
               <Badge
                 variant="secondary"
-                className="mb-8 px-6 py-3 bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 text-lg font-medium"
+                className="mb-8 px-6 py-3 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 text-lg font-medium"
               >
                 <Plane className="w-4 h-4 mr-2" />
                 Professional Aviation Training
               </Badge>
 
-              <h1 className="text-6xl md:text-8xl font-bold mb-8 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 dark:from-blue-400 dark:via-purple-400 dark:to-indigo-400 bg-clip-text text-transparent leading-tight">
+              <h1 className="text-6xl md:text-8xl font-bold mb-8 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-800 dark:from-emerald-400 dark:via-teal-400 dark:to-emerald-300 bg-clip-text text-transparent leading-tight">
                 Soar Beyond
                 <br />
                 <span className="text-5xl md:text-7xl">Your Dreams</span>
@@ -48,7 +57,7 @@ const Hero = () => {
               <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
                 <Button
                   size="lg"
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 text-lg px-10 py-6 rounded-xl"
+                  className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 text-lg px-10 py-6 rounded-xl"
                 >
                   Start Your Journey
                   <Plane className="ml-2 w-5 h-5" />
@@ -56,52 +65,61 @@ const Hero = () => {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-2 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-lg px-10 py-6 rounded-xl transition-all duration-300"
+                  className="border-2 border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-lg px-10 py-6 rounded-xl transition-all duration-300"
                 >
                   Explore Programs
                 </Button>
               </div>
             </div>
 
-            {/* Feature Cards */}
+            {/* Exam Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-              <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-white/20 dark:border-slate-700/50 group hover:scale-105">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <Users className="w-8 h-8 text-white" />
+              <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-emerald-200/50 dark:border-emerald-700/50 group hover:scale-105 cursor-pointer">
+                <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <Wrench className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-foreground mb-4">
-                  Expert Instructors
+                  AMT Exam
                 </h3>
-                <p className="text-muted-foreground text-lg leading-relaxed">
-                  Learn from certified aviation professionals with decades of
-                  real-world experience in commercial and private aviation.
+                <p className="text-muted-foreground text-lg leading-relaxed mb-6">
+                  Aircraft Maintenance Technician certification exam preparation
+                  with comprehensive training modules.
                 </p>
+                <Button className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white">
+                  Start AMT Prep
+                </Button>
               </div>
 
-              <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-white/20 dark:border-slate-700/50 group hover:scale-105">
-                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <Award className="w-8 h-8 text-white" />
+              <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-teal-200/50 dark:border-teal-700/50 group hover:scale-105 cursor-pointer">
+                <div className="w-16 h-16 bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <PlaneTakeoff className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-foreground mb-4">
-                  97% Success Rate
+                  Pilot Exam
                 </h3>
-                <p className="text-muted-foreground text-lg leading-relaxed">
-                  Our proven training methodology ensures the highest success
-                  rates in the industry for all certification levels.
+                <p className="text-muted-foreground text-lg leading-relaxed mb-6">
+                  Commercial and private pilot license exam preparation with
+                  flight training and theory courses.
                 </p>
+                <Button className="w-full bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white">
+                  Start Pilot Prep
+                </Button>
               </div>
 
-              <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-white/20 dark:border-slate-700/50 group hover:scale-105">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <Clock className="w-8 h-8 text-white" />
+              <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-emerald-300/50 dark:border-emerald-600/50 group hover:scale-105 cursor-pointer">
+                <div className="w-16 h-16 bg-gradient-to-br from-emerald-600 to-teal-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <Heart className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-foreground mb-4">
-                  Flexible Training
+                  Hostess Exam
                 </h3>
-                <p className="text-muted-foreground text-lg leading-relaxed">
-                  Personalized schedules and accelerated programs designed to
-                  fit your lifestyle and career goals.
+                <p className="text-muted-foreground text-lg leading-relaxed mb-6">
+                  Flight attendant certification exam with customer service and
+                  safety training programs.
                 </p>
+                <Button className="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white">
+                  Start Hostess Prep
+                </Button>
               </div>
             </div>
           </div>

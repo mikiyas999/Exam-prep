@@ -27,7 +27,7 @@ const Stats = () => {
   return (
     <section
       id="stats"
-      className="py-20 bg-gradient-to-br from-blue-600 via-green-600 to-yellow-500 dark:from-blue-800 dark:via-green-800 dark:to-yellow-700 text-white relative overflow-hidden"
+      className="py-20 bg-gradient-to-br from-emerald-600 to-teal-700 dark:from-emerald-800 dark:to-teal-900 text-white relative overflow-hidden"
     >
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-black/10 dark:bg-black/20"></div>
@@ -39,14 +39,14 @@ const Stats = () => {
         <div className="text-center mb-16">
           <Badge
             variant="secondary"
-            className="mb-4 px-4 py-2 bg-white/20 text-white border-white/30"
+            className="mb-6 px-6 py-3 bg-white/20 text-white border-white/30 text-lg font-medium"
           >
             Our Impact
           </Badge>
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
             Trusted by Thousands of Aspiring Aviators
           </h2>
-          <p className="text-xl text-white/90 max-w-3xl mx-auto">
+          <p className="text-xl text-white/90 max-w-3xl mx-auto leading-relaxed">
             Join a community of successful aviation professionals who started
             their journey with us.
           </p>
@@ -55,7 +55,7 @@ const Stats = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {stats.map((stat, index) => (
             <div key={index} className="text-center group">
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 group-hover:bg-white/20 transition-all duration-300 group-hover:scale-105">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 group-hover:bg-white/20 transition-all duration-300 group-hover:scale-105 border border-white/20">
                 <div className="text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
                   {stat.number}
                 </div>

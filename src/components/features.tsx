@@ -34,16 +34,22 @@ const Features = () => {
   ];
 
   return (
-    <section id="features" className="py-20 bg-background dark:bg-background">
+    <section
+      id="features"
+      className="py-20 bg-gradient-to-br from-slate-50 to-emerald-50 dark:from-slate-900 dark:to-emerald-900"
+    >
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <Badge variant="secondary" className="mb-4 px-4 py-2">
+          <Badge
+            variant="secondary"
+            className="mb-6 px-6 py-3 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 text-lg font-medium"
+          >
             Key Features
           </Badge>
-          <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-800 dark:from-emerald-400 dark:via-teal-400 dark:to-emerald-300 bg-clip-text text-transparent">
             Why Choose AviationPro?
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             We offer a comprehensive and modern approach to aviation training,
             ensuring you receive the best possible education and preparation for
             your career.
@@ -52,10 +58,14 @@ const Features = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {features.map((feature, index) => (
-            <Card key={index} className="bg-secondary/10 backdrop-blur-sm">
+            <Card
+              key={index}
+              className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-emerald-200/50 dark:border-emerald-700/50 hover:shadow-xl transition-all duration-300 hover:scale-105"
+            >
               <CardHeader>
-                <CardTitle className="text-xl">
-                  {feature.title} {feature.icon}
+                <CardTitle className="text-xl flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
+                  <span>{feature.icon}</span>
+                  {feature.title}
                 </CardTitle>
                 <CardDescription className="text-muted-foreground">
                   {feature.description}
