@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, User, LogIn } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import Image from "next/image";
+import Link from "next/link";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -42,13 +43,17 @@ const Navbar = () => {
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
             <ThemeToggle />
-            <Button variant="ghost" size="sm">
-              <LogIn className="mr-2 h-4 w-4" />
-              Login
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/auth/login">
+                <LogIn className="mr-2 h-4 w-4" />
+                Login
+              </Link>
             </Button>
-            <Button size="sm">
-              <User className="mr-2 h-4 w-4" />
-              Register
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/auth/register">
+                <LogIn className="mr-2 h-4 w-4" />
+                Register
+              </Link>
             </Button>
           </div>
 
@@ -63,7 +68,7 @@ const Navbar = () => {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-                <div className="flex flex-col space-y-6 mt-6">
+                <div className="flex flex-col space-y-6 mt-6 p-2">
                   <div className="flex flex-col space-y-4">
                     {menuItems.map((item) => (
                       <a
