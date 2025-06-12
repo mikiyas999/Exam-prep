@@ -17,7 +17,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${jakarta.className} antialiased`}>
+      <body
+        className={`${jakarta.className} antialiased min-h-screen bg-background`}
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
