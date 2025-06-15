@@ -34,14 +34,14 @@ export default function LoginPage() {
 
     if (res?.ok) {
       toast.success("Logged in successfully!");
-      router.push("/");
+      router.push("/dashboard");
     } else {
       setError("Invalid email or password");
       toast.error("Invalid credentials");
     }
   };
   return (
-    <div className="container flex h-screen w-screen flex-col items-center justify-center px-4">
+    <div className=" flex h-screen w-screen flex-col items-center justify-center px-4">
       <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
         <div className="flex flex-col space-y-2 text-center">
           <h1 className="text-2xl font-semibold tracking-tight">
@@ -97,7 +97,7 @@ export default function LoginPage() {
               </div>
             </CardContent>
 
-            <CardFooter className="flex flex-col">
+            <CardFooter className="flex flex-col py-4">
               <Button className="w-full" type="submit" disabled={isLoading}>
                 {isLoading ? (
                   <>

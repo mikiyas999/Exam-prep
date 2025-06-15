@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { users } from "@/db/schema";
+import type { User } from "next-auth";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -13,7 +14,7 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials): Promise<User | null> {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
@@ -37,9 +38,9 @@ export const authOptions: NextAuthOptions = {
           if (!isPasswordValid) {
             return null;
           }
-
+          console.log(user);
           return {
-            id: user[0].id.toString(),
+            id: user[0].id,
             email: user[0].email,
             name: user[0].name,
             role: user[0].role,
@@ -63,8 +64,8 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (token) {
-        session.user.id = token.sub!;
-        session.user.role = token.role as string;
+        session.user.id = Number(token.sub);
+        session.user.role = token.role as "admin" | "user";
       }
       return session;
     },
