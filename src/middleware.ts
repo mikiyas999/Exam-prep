@@ -8,7 +8,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Public routes — always allow
-  const publicPaths = ["/auth/login", "/auth/register", "/unauthorized"];
+  const publicPaths = ["/auth/login", "/auth/register", "/unauthorized", "/"];
   if (publicPaths.some((path) => pathname.startsWith(path))) {
     return NextResponse.next();
   }
@@ -29,7 +29,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Protect everything except the following:
-    "/((?!_next/static|_next/image|favicon.ico|images|auth|unauthorized).*)",
+    "/admin/:path*",
+    "/dashboard/:path*",
+    "/profile/:path*",
+    "/((?!_next|favicon.ico|auth|unauthorized).*)", // fallback
   ],
 };
