@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState, useEffect } from "react";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
@@ -22,12 +22,12 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
   AlertDialog,
@@ -98,17 +98,14 @@ export default function QuestionsPage() {
       const data: QuestionsResponse = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch questions");
+        throw new Error(data?.message || "Failed to fetch questions");
       }
 
       setQuestions(data.questions);
       setPagination(data.pagination);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to fetch questions",
-        variant: "destructive",
-      });
+    } catch (error) {
+      toast.error("Failed to fetch questions");
+      console.log(error);
     } finally {
       setIsLoading(false);
     }
@@ -128,12 +125,13 @@ export default function QuestionsPage() {
         throw new Error(data.message || "Failed to delete question");
       }
 
-      toast.success("Question deleted successfully")
+      toast.success("Question deleted successfully");
 
       // Refresh questions list
       fetchQuestions();
-    } catch (error: any) {
-      toast( "Failed to delete question")
+    } catch (error) {
+      toast.error("Failed to delete question");
+      console.log(error);
     } finally {
       setIsDeleting(null);
     }
@@ -142,17 +140,17 @@ export default function QuestionsPage() {
   // Handle search
   const handleSearch = (value: string) => {
     setSearch(value);
-    setPagination(prev => ({ ...prev, page: 1 }));
+    setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
   // Handle filter change
   const handleFilterChange = () => {
-    setPagination(prev => ({ ...prev, page: 1 }));
+    setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
   // Handle page change
   const handlePageChange = (newPage: number) => {
-    setPagination(prev => ({ ...prev, page: newPage }));
+    setPagination((prev) => ({ ...prev, page: newPage }));
   };
 
   // Fetch questions on component mount and when filters change
@@ -182,52 +180,58 @@ export default function QuestionsPage() {
           <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:space-x-4 lg:space-y-0">
             <div className="flex items-center space-x-2 flex-1">
               <Search className="h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search questions..." 
+              <Input
+                placeholder="Search questions..."
                 className="w-full"
                 value={search}
                 onChange={(e) => handleSearch(e.target.value)}
               />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 lg:flex lg:items-center lg:space-x-2">
-              <Select value={category} onValueChange={(value) => {
-                setCategory(value);
-                handleFilterChange();
-              }}>
+              <Select
+                value={category}
+                onValueChange={(value) => {
+                  setCategory(value);
+                  handleFilterChange();
+                }}
+              >
                 <SelectTrigger className="w-full lg:w-[180px]">
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem >All Categories</SelectItem>
                   <SelectItem value="amt">AMT</SelectItem>
                   <SelectItem value="hostess">Hostess</SelectItem>
                   <SelectItem value="pilot">Pilot</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={questionType} onValueChange={(value) => {
-                setQuestionType(value);
-                handleFilterChange();
-              }}>
+              <Select
+                value={questionType}
+                onValueChange={(value) => {
+                  setQuestionType(value);
+                  handleFilterChange();
+                }}
+              >
                 <SelectTrigger className="w-full lg:w-[180px]">
                   <SelectValue placeholder="Question Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem >All Types</SelectItem>
                   <SelectItem value="math">Math</SelectItem>
                   <SelectItem value="reading">Reading</SelectItem>
                   <SelectItem value="mechanical">Mechanical</SelectItem>
                   <SelectItem value="abstract">Abstract Reasoning</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={difficulty} onValueChange={(value) => {
-                setDifficulty(value);
-                handleFilterChange();
-              }}>
+              <Select
+                value={difficulty}
+                onValueChange={(value) => {
+                  setDifficulty(value);
+                  handleFilterChange();
+                }}
+              >
                 <SelectTrigger className="w-full lg:w-[180px]">
                   <SelectValue placeholder="Difficulty" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem >All Difficulties</SelectItem>
                   <SelectItem value="easy">Easy</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
                   <SelectItem value="hard">Hard</SelectItem>
@@ -235,7 +239,7 @@ export default function QuestionsPage() {
               </Select>
             </div>
           </div>
-          
+
           <div className="mt-6 rounded-md border overflow-x-auto">
             {isLoading ? (
               <div className="flex items-center justify-center p-8">
@@ -250,14 +254,19 @@ export default function QuestionsPage() {
                     <TableHead className="min-w-[100px]">Category</TableHead>
                     <TableHead className="min-w-[100px]">Type</TableHead>
                     <TableHead className="min-w-[100px]">Difficulty</TableHead>
-                    <TableHead className="text-right min-w-[120px]">Actions</TableHead>
+                    <TableHead className="text-right min-w-[120px]">
+                      Actions
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {questions.map((question) => (
                     <TableRow key={question.id}>
                       <TableCell className="font-medium">
-                        <div className="max-w-xs truncate" title={question.questionText}>
+                        <div
+                          className="max-w-xs truncate"
+                          title={question.questionText}
+                        >
                           {question.questionText}
                         </div>
                       </TableCell>
@@ -272,13 +281,13 @@ export default function QuestionsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge 
+                        <Badge
                           className={
-                            question.difficulty === "easy" 
-                              ? "bg-green-500" 
-                              : question.difficulty === "medium" 
-                                ? "bg-yellow-500" 
-                                : "bg-red-500"
+                            question.difficulty === "easy"
+                              ? "bg-green-500"
+                              : question.difficulty === "medium"
+                              ? "bg-yellow-500"
+                              : "bg-red-500"
                           }
                         >
                           {question.difficulty}
@@ -286,9 +295,9 @@ export default function QuestionsPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex flex-col sm:flex-row justify-end gap-1 sm:gap-2">
-                          <Button 
+                          <Button
                             asChild
-                            variant="ghost" 
+                            variant="ghost"
                             size="sm"
                             className="w-full sm:w-auto"
                           >
@@ -297,9 +306,9 @@ export default function QuestionsPage() {
                               View
                             </Link>
                           </Button>
-                          <Button 
+                          <Button
                             asChild
-                            variant="ghost" 
+                            variant="ghost"
                             size="sm"
                             className="w-full sm:w-auto"
                           >
@@ -310,8 +319,8 @@ export default function QuestionsPage() {
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button 
-                                variant="ghost" 
+                              <Button
+                                variant="ghost"
                                 size="sm"
                                 className="w-full sm:w-auto text-red-600 hover:text-red-700"
                               >
@@ -321,9 +330,12 @@ export default function QuestionsPage() {
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogTitle>
+                                  Are you sure?
+                                </AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  This action cannot be undone. This will permanently delete the question.
+                                  This action cannot be undone. This will
+                                  permanently delete the question.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
@@ -358,23 +370,25 @@ export default function QuestionsPage() {
           <p className="text-sm text-muted-foreground text-center sm:text-left">
             {pagination.total > 0 ? (
               <>
-                Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} questions
+                Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
+                {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
+                of {pagination.total} questions
               </>
             ) : (
               "No questions found"
             )}
           </p>
           <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               disabled={pagination.page <= 1 || isLoading}
               onClick={() => handlePageChange(pagination.page - 1)}
             >
               Previous
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               disabled={pagination.page >= pagination.totalPages || isLoading}
               onClick={() => handlePageChange(pagination.page + 1)}
