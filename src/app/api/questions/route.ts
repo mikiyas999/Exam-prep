@@ -7,7 +7,9 @@ import { eq, and, like, desc, count } from "drizzle-orm";
 import { z } from "zod";
 
 const createQuestionSchema = z.object({
-  questionText: z.string().min(5, "Question text must be at least 5 characters"),
+  questionText: z
+    .string()
+    .min(5, "Question text must be at least 5 characters"),
   optionA: z.string().min(1, "Option A is required"),
   optionB: z.string().min(1, "Option B is required"),
   optionC: z.string().min(1, "Option C is required"),
@@ -29,7 +31,9 @@ const createQuestionSchema = z.object({
 
 const querySchema = z.object({
   category: z.enum(["pilot", "hostess", "amt"]).optional(),
-  questionType: z.enum(["math", "reading", "mechanical", "abstract"]).optional(),
+  questionType: z
+    .enum(["math", "reading", "mechanical", "abstract"])
+    .optional(),
   difficulty: z.enum(["easy", "medium", "hard"]).optional(),
   search: z.string().optional(),
   page: z.string().optional(),
@@ -59,19 +63,19 @@ export async function GET(request: NextRequest) {
 
     // Build where conditions
     const conditions = [];
-    
+
     if (query.category) {
       conditions.push(eq(questions.category, query.category));
     }
-    
+
     if (query.questionType) {
       conditions.push(eq(questions.questionType, query.questionType));
     }
-    
+
     if (query.difficulty) {
       conditions.push(eq(questions.difficulty, query.difficulty));
     }
-    
+
     if (query.search) {
       conditions.push(like(questions.questionText, `%${query.search}%`));
     }
@@ -127,17 +131,18 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    console.log({session});
+    console.log({ session });
     if (!session || session.user.role !== "admin") {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
-    const { optionA, optionB, optionC, imageUrl, ...rest } = createQuestionSchema.parse(body);
-    
+    const { optionA, optionB, optionC, imageUrl, ...rest } =
+      createQuestionSchema.parse(body);
+
     // Convert individual options to array format
     const options = [optionA, optionB, optionC];
-    
+
     const newQuestion = await db
       .insert(questions)
       .values({
@@ -149,10 +154,10 @@ export async function POST(request: NextRequest) {
       .returning();
 
     return NextResponse.json(
-      { 
+      {
         success: true,
         message: "Question created successfully",
-        question: newQuestion[0]
+        question: newQuestion[0],
       },
       { status: 201 }
     );
