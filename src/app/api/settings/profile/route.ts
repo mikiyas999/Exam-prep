@@ -18,14 +18,17 @@ const changePasswordSchema = z.object({
   newPassword: z.string().min(6, "New password must be at least 6 characters"),
 });
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = parseInt(session.user.id);
+    const userId =
+      typeof session.user.id === "string"
+        ? parseInt(session.user.id)
+        : session.user.id;
 
     const user = await db
       .select({
@@ -62,7 +65,10 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json();
     const { name, email } = updateProfileSchema.parse(body);
-    const userId = parseInt(session.user.id);
+    const userId =
+      typeof session.user.id === "string"
+        ? parseInt(session.user.id)
+        : session.user.id;
 
     // Check if email is already taken by another user
     if (email) {
@@ -124,7 +130,10 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { currentPassword, newPassword } = changePasswordSchema.parse(body);
-    const userId = parseInt(session.user.id);
+    const userId =
+      typeof session.user.id === "string"
+        ? parseInt(session.user.id)
+        : session.user.id;
 
     // Get current user with password
     const user = await db

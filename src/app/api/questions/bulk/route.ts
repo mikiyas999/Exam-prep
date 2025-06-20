@@ -1,23 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { questions } from "@/lib/db/schema";
+
 import { z } from "zod";
+import { questions } from "@/db/schema";
+import { db } from "@/db/drizzle";
 
 const bulkQuestionSchema = z.object({
-  questions: z.array(z.object({
-    questionText: z.string().min(5, "Question text must be at least 5 characters"),
-    optionA: z.string().min(1, "Option A is required"),
-    optionB: z.string().min(1, "Option B is required"),
-    optionC: z.string().min(1, "Option C is required"),
-    correctAnswer: z.enum(["A", "B", "C"]),
-    explanation: z.string().optional(),
-    imageUrl: z.string().url().optional().or(z.literal("")),
-    questionType: z.enum(["math", "reading", "mechanical", "abstract"]),
-    category: z.enum(["pilot", "hostess", "amt"]),
-    difficulty: z.enum(["easy", "medium", "hard"]),
-  })).min(1, "At least one question is required"),
+  questions: z
+    .array(
+      z.object({
+        questionText: z
+          .string()
+          .min(5, "Question text must be at least 5 characters"),
+        optionA: z.string().min(1, "Option A is required"),
+        optionB: z.string().min(1, "Option B is required"),
+        optionC: z.string().min(1, "Option C is required"),
+        correctAnswer: z.enum(["A", "B", "C"]),
+        explanation: z.string().optional(),
+        imageUrl: z.string().url().optional().or(z.literal("")),
+        questionType: z.enum(["math", "reading", "mechanical", "abstract"]),
+        category: z.enum(["pilot", "hostess", "amt"]),
+        difficulty: z.enum(["easy", "medium", "hard"]),
+      })
+    )
+    .min(1, "At least one question is required"),
 });
 
 export async function POST(request: NextRequest) {
@@ -39,7 +46,10 @@ export async function POST(request: NextRequest) {
       questionType: q.questionType,
       category: q.category,
       difficulty: q.difficulty,
-      createdBy: parseInt(session.user.id),
+      createdBy:
+        typeof session.user.id === "string"
+          ? parseInt(session.user.id)
+          : session.user.id,
     }));
 
     const createdQuestions = await db
