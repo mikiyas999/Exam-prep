@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { eq, and, desc, count, sql } from "drizzle-orm";
 import { questions, userProgress, users } from "@/db/schema";
 import { db } from "@/db/drizzle";
+import { Category } from "@/db/types";
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
     const conditions = [];
 
     if (category) {
-      conditions.push(eq(questions.category, category as any));
+      conditions.push(eq(questions.category, category as Category));
     }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
@@ -61,7 +62,11 @@ export async function GET(request: NextRequest) {
     }));
 
     // Get current user's position if not in top results
-    const currentUserId = parseInt(session.user.id);
+    const currentUserId =
+      typeof session.user.id === "string"
+        ? parseInt(session.user.id)
+        : session.user.id;
+
     const currentUserInTop = leaderboard.find(
       (user) => user.userId === currentUserId
     );
