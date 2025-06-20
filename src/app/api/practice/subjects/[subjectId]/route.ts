@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { eq, and } from "drizzle-orm";
 import { questions } from "@/db/schema";
 import { db } from "@/db/drizzle";
+import { Category, questionType } from "@/db/types";
 
 export async function GET(
   request: NextRequest,
@@ -44,8 +45,8 @@ export async function GET(
 
     // Get subject info and questions
     const conditions = [
-      eq(questions.category, category as any),
-      eq(questions.questionType, questionType as any),
+      eq(questions.category, category as Category),
+      eq(questions.questionType, questionType as questionType),
     ];
 
     const subjectQuestions = await db

@@ -6,6 +6,7 @@ import { eq, and, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db/drizzle";
 import { questions } from "@/db/schema";
+import { Category, difficulty, questionType } from "@/db/types";
 
 const querySchema = z.object({
   category: z.enum(["pilot", "hostess", "amt"]),
@@ -28,9 +29,10 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const query = querySchema.parse({
-      category: searchParams.get("category") as any,
-      questionType: (searchParams.get("questionType") as any) || undefined,
-      difficulty: (searchParams.get("difficulty") as any) || undefined,
+      category: searchParams.get("category") as Category,
+      questionType:
+        (searchParams.get("questionType") as questionType) || undefined,
+      difficulty: (searchParams.get("difficulty") as difficulty) || undefined,
       limit: searchParams.get("limit") || "10",
     });
 
