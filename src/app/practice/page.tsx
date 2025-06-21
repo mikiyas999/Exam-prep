@@ -97,7 +97,7 @@ export default function PracticePage() {
       }
 
       setSubjects(data.subjects);
-    } catch (error: any) {
+    } catch (error) {
       setSubjectsError(error.message);
       toast.error("Failed to fetch subjects");
     } finally {
@@ -121,7 +121,7 @@ export default function PracticePage() {
       }
 
       setPracticeTests(data.practiceTests);
-    } catch (error: any) {
+    } catch (error) {
       setTestsError(error.message);
       toast.error("Failed to fetch practice tests");
     } finally {
@@ -165,8 +165,9 @@ export default function PracticePage() {
 
       // Navigate to practice session
       window.location.href = "/practice/session";
-    } catch (error: any) {
+    } catch (error) {
       toast.error("Failed to start practice session");
+      console.log(error);
     }
   };
 
