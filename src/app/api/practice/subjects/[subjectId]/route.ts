@@ -7,18 +7,14 @@ import { questions } from "@/db/schema";
 import { db } from "@/db/drizzle";
 import { Category, questionType } from "@/db/types";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { subjectId: string } }
-) {
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const subjectId = params.subjectId;
-
+    const subjectId = request.nextUrl.pathname.split("/").pop()!;
     // Parse subject ID (format: "category-questionType")
     const [category, questionType] = subjectId.split("-");
 

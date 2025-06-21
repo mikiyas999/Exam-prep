@@ -1,4 +1,5 @@
 "use client";
+import { use } from "react";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -51,11 +52,10 @@ interface Subject {
 export default function PracticeSessionPage({
   params,
 }: {
-  params: { subjectId: string };
+  params: Promise<{ subjectId: string }>;
 }) {
   const router = useRouter();
-  const subjectId = params.subjectId;
-
+  const { subjectId } = use(params);
   // State
   const [subject, setSubject] = useState<Subject | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -92,7 +92,7 @@ export default function PracticeSessionPage({
 
       setSubject(data.subject);
       setQuestions(data.questions);
-    } catch (error: any) {
+    } catch (error) {
       setError(error.message);
       toast.error("Failed to load practice session");
     } finally {
