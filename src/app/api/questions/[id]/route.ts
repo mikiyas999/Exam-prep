@@ -7,29 +7,40 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 const updateQuestionSchema = z.object({
-  questionText: z.string().min(5, "Question text must be at least 5 characters").optional(),
-  options: z.array(z.string()).min(2, "At least 2 options required").max(4, "Maximum 4 options allowed").optional(),
+  questionText: z
+    .string()
+    .min(5, "Question text must be at least 5 characters")
+    .optional(),
+  options: z
+    .array(z.string())
+    .min(2, "At least 2 options required")
+    .max(4, "Maximum 4 options allowed")
+    .optional(),
   correctAnswer: z.string().optional(),
   explanation: z.string().optional(),
   imageUrl: z.string().url().optional().or(z.literal("")),
-  questionType: z.enum(["math", "reading", "mechanical", "abstract"]).optional(),
+  questionType: z
+    .enum(["math", "reading", "mechanical", "abstract"])
+    .optional(),
   category: z.enum(["pilot", "hostess", "amt"]).optional(),
   difficulty: z.enum(["easy", "medium", "hard"]).optional(),
 });
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
+    const url = request.nextUrl;
+    const idParam = url.pathname.split("/").pop();
+    const questionId = parseInt(idParam ?? "");
 
-    const questionId = parseInt(params.id);
     if (isNaN(questionId)) {
-      return NextResponse.json({ message: "Invalid question ID" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Invalid question ID" },
+        { status: 400 }
+      );
     }
 
     const question = await db
@@ -39,7 +50,10 @@ export async function GET(
       .limit(1);
 
     if (!question[0]) {
-      return NextResponse.json({ message: "Question not found" }, { status: 404 });
+      return NextResponse.json(
+        { message: "Question not found" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json({ question: question[0] });
@@ -64,7 +78,10 @@ export async function PUT(
 
     const questionId = parseInt(params.id);
     if (isNaN(questionId)) {
-      return NextResponse.json({ message: "Invalid question ID" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Invalid question ID" },
+        { status: 400 }
+      );
     }
 
     const body = await request.json();
@@ -78,7 +95,10 @@ export async function PUT(
       .limit(1);
 
     if (!existingQuestion[0]) {
-      return NextResponse.json({ message: "Question not found" }, { status: 404 });
+      return NextResponse.json(
+        { message: "Question not found" },
+        { status: 404 }
+      );
     }
 
     const updatedQuestion = await db
@@ -123,7 +143,10 @@ export async function DELETE(
 
     const questionId = parseInt(params.id);
     if (isNaN(questionId)) {
-      return NextResponse.json({ message: "Invalid question ID" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Invalid question ID" },
+        { status: 400 }
+      );
     }
 
     // Check if question exists
@@ -134,7 +157,10 @@ export async function DELETE(
       .limit(1);
 
     if (!existingQuestion[0]) {
-      return NextResponse.json({ message: "Question not found" }, { status: 404 });
+      return NextResponse.json(
+        { message: "Question not found" },
+        { status: 404 }
+      );
     }
 
     await db.delete(questions).where(eq(questions.id, questionId));
