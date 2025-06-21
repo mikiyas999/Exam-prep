@@ -26,6 +26,7 @@ import {
   FileText,
 } from "lucide-react";
 import { toast } from "sonner";
+import { use } from "react";
 
 interface Question {
   questionId: number;
@@ -50,9 +51,13 @@ interface Exam {
   createdAt: string;
 }
 
-export default function ExamPage({ params }: { params: { id: string } }) {
+export default function ExamPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const router = useRouter();
-  const examId = parseInt(params.id);
+  const { id } = use(params);
 
   // State
   const [exam, setExam] = useState<Exam | null>(null);
@@ -82,7 +87,7 @@ export default function ExamPage({ params }: { params: { id: string } }) {
     setIsLoading(true);
     setError("");
     try {
-      const response = await fetch(`/api/exams/${examId}`);
+      const response = await fetch(`/api/exams/${id}`);
       const data = await response.json();
 
       if (!response.ok) {
@@ -140,7 +145,7 @@ export default function ExamPage({ params }: { params: { id: string } }) {
   const submitExam = async () => {
     setIsSubmitting(true);
     try {
-      const response = await fetch(`/api/exams/${examId}/submit`, {
+      const response = await fetch(`/api/exams/${id}/submit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -160,7 +165,7 @@ export default function ExamPage({ params }: { params: { id: string } }) {
       }
 
       toast.success("Exam submitted successfully");
-
+      console.log(data);
       // Store results and navigate to results page
       localStorage.setItem(
         "examResults",
@@ -203,10 +208,10 @@ export default function ExamPage({ params }: { params: { id: string } }) {
 
   // Fetch data on component mount
   useEffect(() => {
-    if (examId) {
+    if (id) {
       fetchExamData();
     }
-  }, [examId]);
+  }, [id]);
 
   // Loading state
   if (isLoading) {
@@ -402,7 +407,8 @@ export default function ExamPage({ params }: { params: { id: string } }) {
 
         <CardContent className="pt-6">
           <RadioGroup
-            value={selectedAnswers[currentQuestion.questionId]}
+            key={currentQuestion.questionId} // force re-mount on question change
+            value={selectedAnswers[currentQuestion.questionId] ?? ""}
             onValueChange={handleAnswerSelect}
             className="space-y-4"
           >
@@ -448,7 +454,11 @@ export default function ExamPage({ params }: { params: { id: string } }) {
 
           <div className="flex flex-col space-y-2 md:flex-row md:space-x-2 md:space-y-0">
             {currentQuestionIndex < questions.length - 1 ? (
-              <Button onClick={handleNextQuestion} className="w-full md:w-auto">
+              <Button
+                onClick={handleNextQuestion}
+                className="w-full md:w-auto"
+                disabled={!selectedAnswers[currentQuestion.questionId]}
+              >
                 Next
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
