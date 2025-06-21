@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { eq, and, desc, count, sql } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { questions, userProgress } from "@/db/schema";
+import { Category, questionType } from "@/db/types";
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,7 +14,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = parseInt(session.user.id);
+    const userId =
+      typeof session.user.id === "string"
+        ? parseInt(session.user.id)
+        : session.user.id;
+
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");
     const questionType = searchParams.get("questionType");
@@ -22,11 +27,11 @@ export async function GET(request: NextRequest) {
     const conditions = [eq(userProgress.userId, userId)];
 
     if (category) {
-      conditions.push(eq(questions.category, category as any));
+      conditions.push(eq(questions.category, category as Category));
     }
 
     if (questionType) {
-      conditions.push(eq(questions.questionType, questionType as any));
+      conditions.push(eq(questions.questionType, questionType as questionType));
     }
 
     // Get overall progress statistics
