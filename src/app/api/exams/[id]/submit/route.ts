@@ -12,17 +12,16 @@ const submitExamSchema = z.object({
   timeSpent: z.number().optional(), // in seconds
 });
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
+    const url = request.nextUrl;
+    const idParam = url.pathname.split("/").pop();
+    const examId = parseInt(idParam ?? "");
 
-    const examId = parseInt(params.id);
     if (isNaN(examId)) {
       return NextResponse.json({ message: "Invalid exam ID" }, { status: 400 });
     }
@@ -61,6 +60,7 @@ export async function POST(
       if (!question) continue;
 
       const userAnswer = answers[question.id.toString()];
+
       const isCorrect = userAnswer === question.correctAnswer;
 
       results.push({
