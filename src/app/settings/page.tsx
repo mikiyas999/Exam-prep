@@ -33,6 +33,7 @@ import {
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
 import { Switch } from "@/components/ui/switch";
+import { signOut } from "next-auth/react";
 
 interface UserProfile {
   id: number;
@@ -277,6 +278,14 @@ export default function SettingsPage() {
                           {new Date(profile.createdAt).toLocaleDateString()}
                         </div>
                       </div>
+                    </div>
+                    <div>
+                      <Button
+                        variant="destructive"
+                        onClick={() => signOut({ callbackUrl: "/auth/login" })}
+                      >
+                        Log out
+                      </Button>
                     </div>
 
                     <div className="flex justify-end">
