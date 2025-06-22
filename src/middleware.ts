@@ -1,37 +1,39 @@
+// middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-// Middleware function
 export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request });
   const { pathname } = request.nextUrl;
 
-  // Public routes — always allow
-  const publicPaths = ["/auth/login", "/auth/register", "/unauthorized", "/"];
-  if (publicPaths.some((path) => pathname.startsWith(path))) {
+  const publicPaths = ["/", "/auth/login", "/auth/register", "/unauthorized"];
+  const isPublic = publicPaths.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`)
+  );
+
+  if (isPublic) {
     return NextResponse.next();
   }
 
-  // If no token and trying to access a protected route
   if (!token) {
     return NextResponse.redirect(new URL("/auth/login", request.url));
   }
 
-  // Role-based protection: Only "admin" can access /admin/*
-  if (pathname.startsWith("/admin") && token?.role !== "admin") {
+  const isAdminPath = pathname === "/admin" || pathname.startsWith("/admin/");
+  if (isAdminPath && token.role !== "admin") {
     return NextResponse.redirect(new URL("/unauthorized", request.url));
   }
 
-  // Otherwise allow
   return NextResponse.next();
 }
 
 export const config = {
   matcher: [
+    "/admin",
     "/admin/:path*",
     "/dashboard/:path*",
     "/profile/:path*",
-    "/((?!_next|favicon.ico|auth|unauthorized).*)", // fallback
+    "/practice/:path*",
   ],
 };
