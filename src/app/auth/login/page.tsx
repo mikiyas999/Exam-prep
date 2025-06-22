@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -8,16 +8,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { toast } from "sonner";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { status } = useSession();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // ✅ Redirect if already logged in
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/dashboard");
+    }
+  }, [status, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,8 +49,18 @@ export default function LoginPage() {
       toast.error("Invalid credentials");
     }
   };
+
+  // ⏳ Optional loading screen while checking auth state
+  if (status === "loading") {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        Checking session...
+      </div>
+    );
+  }
+
   return (
-    <div className=" flex h-screen w-screen flex-col items-center justify-center px-4">
+    <div className="flex h-screen w-screen flex-col items-center justify-center px-4">
       <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
         <div className="flex flex-col space-y-2 text-center">
           <h1 className="text-2xl font-semibold tracking-tight">
@@ -110,7 +129,7 @@ export default function LoginPage() {
               </Button>
 
               <p className="mt-4 text-center text-sm text-muted-foreground">
-                Dont have an account?{" "}
+                Don’t have an account?{" "}
                 <Link
                   href="/auth/register"
                   className="underline underline-offset-4 hover:text-primary"
