@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { use } from "react";
+import Image from "next/image";
 
 interface Question {
   questionId: number;
@@ -396,9 +397,11 @@ export default function ExamPage({
         {currentQuestion.imageUrl && (
           <CardContent className="pb-0">
             <div className="overflow-hidden rounded-md">
-              <img
+              <Image
                 src={currentQuestion.imageUrl}
                 alt="Question diagram"
+                width={800} // or your preferred dimensions
+                height={400}
                 className="w-full object-cover max-h-64 md:max-h-96"
               />
             </div>
