@@ -18,10 +18,12 @@ export async function POST(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-    const url = request.nextUrl;
-    const idParam = url.pathname.split("/").pop();
-    const examId = parseInt(idParam ?? "");
+    const path = request.nextUrl.pathname; // "/api/exams/3/submit"
+    const parts = path.split("/"); // ["", "api", "exams", "3", "submit"]
+    const examId = parseInt(parts[3]); // 3
+    // 3
 
+    console.log(examId);
     if (isNaN(examId)) {
       return NextResponse.json({ message: "Invalid exam ID" }, { status: 400 });
     }
