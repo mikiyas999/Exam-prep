@@ -10,6 +10,18 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**", // wildcard path
       },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        port: "",
+        pathname: "/**", // wildcard path
+      },
+      {
+        protocol: "https",
+        hostname: "media.licdn.com",
+        port: "",
+        pathname: "/**", // wildcard path
+      },
     ],
   },
 };
