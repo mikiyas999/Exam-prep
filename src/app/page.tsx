@@ -36,9 +36,11 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 const Index = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const router = useRouter();
 
   const features = [
     {
@@ -171,6 +173,10 @@ const Index = () => {
     },
   ];
 
+  const handleClick = () => {
+    router.push("/auth/login");
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       {/* Header */}
@@ -294,6 +300,7 @@ const Index = () => {
             <Button
               size="lg"
               className="bg-gradient-to-r from-green-600 to-yellow-500 hover:from-green-700 hover:to-yellow-600 text-lg px-8 py-4"
+              onClick={handleClick}
             >
               Start Free Trial
             </Button>
