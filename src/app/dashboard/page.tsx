@@ -1,5 +1,9 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,248 +11,694 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Overview } from "@/components/dashboard/overview";
-import { RecentActivity } from "@/components/dashboard/recent-activity";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  BookOpen,
+  Trophy,
+  Target,
+  Clock,
+  Award,
+  Users,
+  FileText,
+  Play,
+  BarChart3,
+  Loader2,
+  AlertCircle,
+  CheckCircle,
+  Zap,
+} from "lucide-react";
 import Link from "next/link";
+import {
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+import { toast } from "sonner";
 
-export default async function DashboardPage() {
-  // In a real implementation, you would check auth state server-side
-  // For now, we'll assume the user is authenticated
-  // If not authenticated, redirect to login
-  // const session = await getSession();
-  // if (!session) redirect("/auth/login");
+interface DashboardStats {
+  overview: {
+    totalPracticeAttempts: number;
+    totalExamsCompleted: number;
+    averageScore: number;
+    bestScore: number;
+    currentStreak: number;
+    totalStudyTime: number;
+    rank: number;
+    totalUsers: number;
+  };
+  recentActivity: Array<{
+    id: number;
+    type: "practice" | "exam" | "achievement";
+    title: string;
+    description: string;
+    score?: number;
+    timestamp: string;
+    category?: string;
+  }>;
+  performance: {
+    weeklyProgress: Array<{
+      day: string;
+      score: number;
+      attempts: number;
+    }>;
+    categoryBreakdown: Array<{
+      category: string;
+      score: number;
+      attempts: number;
+      color: string;
+    }>;
+  };
+  upcomingExams: Array<{
+    id: number;
+    title: string;
+    category: string;
+    difficulty: string;
+    questionCount: number;
+    timeLimit: number;
+  }>;
+  achievements: Array<{
+    id: number;
+    title: string;
+    description: string;
+    icon: string;
+    unlockedAt: string;
+    rarity: "common" | "rare" | "epic" | "legendary";
+  }>;
+  recommendations: Array<{
+    type: "practice" | "exam" | "study";
+    title: string;
+    description: string;
+    action: string;
+    href: string;
+  }>;
+}
+
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
+
+export default function DashboardPage() {
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [timeframe] = useState("week");
+
+  // Fetch dashboard stats
+  const fetchDashboardStats = async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const response = await fetch(
+        `/api/dashboard/stats?timeframe=${timeframe}`
+      );
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch dashboard stats");
+      }
+
+      setStats(data);
+    } catch (error) {
+      setError(error.message);
+      toast.error("Failed to load data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Get achievement rarity color
+  const getAchievementColor = (rarity: string) => {
+    const colors = {
+      common: "bg-gray-500",
+      rare: "bg-blue-500",
+      epic: "bg-purple-500",
+      legendary: "bg-yellow-500",
+    };
+    return colors[rarity as keyof typeof colors] || "bg-gray-500";
+  };
+
+  // Get category display name
+  const getCategoryDisplayName = (category: string) => {
+    const names = {
+      amt: "AMT",
+      hostess: "Cabin Crew",
+      pilot: "Pilot",
+    };
+    return names[category as keyof typeof names] || category;
+  };
+
+  // Format study time
+  const formatStudyTime = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+  };
+
+  // Fetch stats on component mount
+  useEffect(() => {
+    fetchDashboardStats();
+  }, [timeframe]);
 
   return (
     <DashboardShell>
-      <DashboardHeader heading="Dashboard" text="Welcome to your dashboard." />
+      <DashboardHeader
+        heading="Dashboard"
+        text="Welcome back! Here's your learning progress overview."
+      >
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button asChild>
+            <Link href="/practice">
+              <Play className="mr-2 h-4 w-4" />
+              Start Practice
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/exams">
+              <FileText className="mr-2 h-4 w-4" />
+              Take Exam
+            </Link>
+          </Button>
+        </div>
+      </DashboardHeader>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mt-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Completed Tests
-            </CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-            </svg>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">+2 since last month</p>
-          </CardContent>
-        </Card>
+      <div className="mt-6 space-y-6">
+        {/* Error State */}
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Score</CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">76%</div>
-            <p className="text-xs text-muted-foreground">
-              +5% since last month
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Practice Hours
-            </CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <rect width="20" height="14" x="2" y="5" rx="2" />
-              <path d="M2 10h20" />
-            </svg>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">14.2</div>
-            <p className="text-xs text-muted-foreground">
-              +2.1 since last month
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Leaderboard Rank
-            </CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            </svg>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">#7</div>
-            <p className="text-xs text-muted-foreground">
-              +3 spots since last month
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-6">
-        <Card className="col-span-full lg:col-span-4">
-          <CardHeader>
-            <CardTitle>Performance Overview</CardTitle>
-          </CardHeader>
-          <CardContent className="pl-2">
-            <Overview />
-          </CardContent>
-        </Card>
-
-        <Card className="col-span-full lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>
-              Your recent test attempts and practice sessions.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <RecentActivity />
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle>Practice Tests</CardTitle>
-            <CardDescription>
-              Take practice tests to improve your skills.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pb-2">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Math</span>
-                <span className="text-sm text-muted-foreground">
-                  24 questions
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Reading</span>
-                <span className="text-sm text-muted-foreground">
-                  32 questions
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Mechanical</span>
-                <span className="text-sm text-muted-foreground">
-                  18 questions
-                </span>
-              </div>
-            </div>
-          </CardContent>
-          <div className="p-4 pt-0">
-            <Button asChild className="w-full">
-              <Link href="/practice">Start Practice</Link>
-            </Button>
+        {/* Loading State */}
+        {isLoading ? (
+          <div className="flex items-center justify-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <span className="ml-2">Loading dashboard...</span>
           </div>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle>Full Mock Exams</CardTitle>
-            <CardDescription>
-              Test yourself with complete timed exams.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pb-2">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">AMT Entrance</span>
-                <span className="text-sm text-muted-foreground">2 hours</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Cabin Crew</span>
-                <span className="text-sm text-muted-foreground">
-                  90 minutes
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Pilot Assessment</span>
-                <span className="text-sm text-muted-foreground">3 hours</span>
-              </div>
-            </div>
-          </CardContent>
-          <div className="p-4 pt-0">
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/exams">View Exams</Link>
-            </Button>
+        ) : !stats ? (
+          <div className="text-center p-8 text-muted-foreground">
+            No dashboard data available.
           </div>
-        </Card>
+        ) : (
+          <>
+            {/* Welcome Banner */}
+            <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between">
+                  <div className="space-y-2">
+                    <h2 className="text-2xl font-bold">
+                      Keep up the great work!
+                    </h2>
+                    <p className="text-blue-100">
+                      Youre ranked #{stats.overview.rank} out of{" "}
+                      {stats.overview.totalUsers} learners
+                    </p>
+                    <div className="flex items-center space-x-4 text-sm">
+                      <div className="flex items-center">
+                        <Zap className="mr-1 h-4 w-4" />
+                        <span>{stats.overview.currentStreak} day streak</span>
+                      </div>
+                      <div className="flex items-center">
+                        <Clock className="mr-1 h-4 w-4" />
+                        <span>
+                          {formatStudyTime(stats.overview.totalStudyTime)}{" "}
+                          studied
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 md:mt-0">
+                    <Trophy className="h-16 w-16 text-yellow-300" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle>Study Resources</CardTitle>
-            <CardDescription>
-              Access study materials to help you prepare.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pb-2">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Study Guides</span>
-                <span className="text-sm text-muted-foreground">12 guides</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Video Tutorials</span>
-                <span className="text-sm text-muted-foreground">8 videos</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Flashcards</span>
-                <span className="text-sm text-muted-foreground">120 cards</span>
-              </div>
+            {/* Key Metrics */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Average Score
+                  </CardTitle>
+                  <Target className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">
+                    {stats.overview.averageScore}%
+                  </div>
+                  <Progress
+                    value={stats.overview.averageScore}
+                    className="mt-2 h-2"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Best: {stats.overview.bestScore}%
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Practice Sessions
+                  </CardTitle>
+                  <BookOpen className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {stats.overview.totalPracticeAttempts}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Total practice attempts
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Exams Completed
+                  </CardTitle>
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {stats.overview.totalExamsCompleted}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Full exams taken
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Global Rank
+                  </CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-600">
+                    #{stats.overview.rank}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Out of {stats.overview.totalUsers} users
+                  </p>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-          <div className="p-4 pt-0">
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/resources">Browse Resources</Link>
-            </Button>
-          </div>
-        </Card>
+
+            {/* Charts and Analytics */}
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* Weekly Progress */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Weekly Progress</CardTitle>
+                  <CardDescription>
+                    Your performance over the last 7 days
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {stats.performance.weeklyProgress.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={stats.performance.weeklyProgress}>
+                        <XAxis
+                          dataKey="day"
+                          stroke="#888888"
+                          fontSize={12}
+                          tickLine={false}
+                          axisLine={false}
+                        />
+                        <YAxis
+                          stroke="#888888"
+                          fontSize={12}
+                          tickLine={false}
+                          axisLine={false}
+                          tickFormatter={(value) => `${value}%`}
+                        />
+                        <Tooltip
+                          formatter={(value) => [`${value}%`, "Score"]}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="score"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2}
+                          activeDot={{ r: 6 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                      No progress data available
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Category Performance */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Category Performance</CardTitle>
+                  <CardDescription>
+                    Your scores across different categories
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {stats.performance.categoryBreakdown.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={stats.performance.categoryBreakdown}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ category, score }) =>
+                            `${getCategoryDisplayName(category)}: ${score}%`
+                          }
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="score"
+                        >
+                          {stats.performance.categoryBreakdown.map(
+                            (entry, index) => (
+                              <Cell
+                                key={`cell-${index}`}
+                                fill={COLORS[index % COLORS.length]}
+                              />
+                            )
+                          )}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                      No category data available
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Recent Activity and Achievements */}
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* Recent Activity */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Activity</CardTitle>
+                  <CardDescription>
+                    Your latest practice sessions and exams
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {stats.recentActivity.map((activity) => (
+                      <div
+                        key={activity.id}
+                        className="flex items-center space-x-4"
+                      >
+                        <div
+                          className={`p-2 rounded-full ${
+                            activity.type === "practice"
+                              ? "bg-blue-100 text-blue-600"
+                              : activity.type === "exam"
+                              ? "bg-green-100 text-green-600"
+                              : "bg-yellow-100 text-yellow-600"
+                          }`}
+                        >
+                          {activity.type === "practice" ? (
+                            <BookOpen className="h-4 w-4" />
+                          ) : activity.type === "exam" ? (
+                            <FileText className="h-4 w-4" />
+                          ) : (
+                            <Award className="h-4 w-4" />
+                          )}
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <p className="text-sm font-medium">
+                            {activity.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {activity.description}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          {activity.score && (
+                            <Badge variant="outline">{activity.score}%</Badge>
+                          )}
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {new Date(activity.timestamp).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Recent Achievements */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Achievements</CardTitle>
+                  <CardDescription>
+                    Your latest unlocked achievements
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {stats.achievements.map((achievement) => (
+                      <div
+                        key={achievement.id}
+                        className="flex items-center space-x-4"
+                      >
+                        <div
+                          className={`p-2 rounded-full ${getAchievementColor(
+                            achievement.rarity
+                          )} text-white`}
+                        >
+                          <Award className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <p className="text-sm font-medium">
+                            {achievement.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {achievement.description}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <Badge variant="outline" className="capitalize">
+                            {achievement.rarity}
+                          </Badge>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {new Date(
+                              achievement.unlockedAt
+                            ).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Recommendations and Upcoming Exams */}
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* Personalized Recommendations */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recommended for You</CardTitle>
+                  <CardDescription>
+                    Personalized suggestions to improve your performance
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {stats.recommendations.map((rec, index) => (
+                      <div key={index} className="p-4 border rounded-lg">
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-1">
+                            <h4 className="font-medium">{rec.title}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              {rec.description}
+                            </p>
+                          </div>
+                          <Button asChild size="sm">
+                            <Link href={rec.href}>{rec.action}</Link>
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Upcoming Exams */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Available Exams</CardTitle>
+                  <CardDescription>
+                    Exams you can take to test your knowledge
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {stats.upcomingExams.map((exam) => (
+                      <div key={exam.id} className="p-4 border rounded-lg">
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-2">
+                            <h4 className="font-medium">{exam.title}</h4>
+                            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                              <div className="flex items-center">
+                                <FileText className="mr-1 h-3 w-3" />
+                                <span>{exam.questionCount} questions</span>
+                              </div>
+                              <div className="flex items-center">
+                                <Clock className="mr-1 h-3 w-3" />
+                                <span>{exam.timeLimit} min</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Badge variant="outline" className="capitalize">
+                                {getCategoryDisplayName(exam.category)}
+                              </Badge>
+                              <Badge
+                                className={
+                                  exam.difficulty === "easy"
+                                    ? "bg-green-500"
+                                    : exam.difficulty === "medium"
+                                    ? "bg-yellow-500"
+                                    : "bg-red-500"
+                                }
+                              >
+                                {exam.difficulty}
+                              </Badge>
+                            </div>
+                          </div>
+                          <Button asChild size="sm">
+                            <Link href={`/exams/${exam.id}`}>
+                              <Play className="mr-1 h-3 w-3" />
+                              Start
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="grid gap-4 md:grid-cols-3">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Continue Learning</CardTitle>
+                  <CardDescription>Pick up where you left off</CardDescription>
+                </CardHeader>
+                <CardContent className="pb-2">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span>Mathematics</span>
+                      <span className="text-muted-foreground">
+                        75% complete
+                      </span>
+                    </div>
+                    <Progress value={75} className="h-2" />
+                  </div>
+                </CardContent>
+                <div className="p-4 pt-0">
+                  <Button asChild className="w-full" size="sm">
+                    <Link href="/practice/amt-math">
+                      <BookOpen className="mr-2 h-4 w-4" />
+                      Continue Practice
+                    </Link>
+                  </Button>
+                </div>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">View Progress</CardTitle>
+                  <CardDescription>
+                    Detailed analytics and insights
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pb-2">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span>This Week</span>
+                      <span className="text-green-600">+12%</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span>Accuracy</span>
+                      <span className="font-medium">
+                        {stats.overview.averageScore}%
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+                <div className="p-4 pt-0">
+                  <Button
+                    asChild
+                    className="w-full"
+                    size="sm"
+                    variant="outline"
+                  >
+                    <Link href="/progress">
+                      <BarChart3 className="mr-2 h-4 w-4" />
+                      View Analytics
+                    </Link>
+                  </Button>
+                </div>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Leaderboard</CardTitle>
+                  <CardDescription>See how you rank globally</CardDescription>
+                </CardHeader>
+                <CardContent className="pb-2">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span>Your Rank</span>
+                      <span className="font-medium">
+                        #{stats.overview.rank}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span>Top 10%</span>
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    </div>
+                  </div>
+                </CardContent>
+                <div className="p-4 pt-0">
+                  <Button
+                    asChild
+                    className="w-full"
+                    size="sm"
+                    variant="outline"
+                  >
+                    <Link href="/leaderboard">
+                      <Trophy className="mr-2 h-4 w-4" />
+                      View Leaderboard
+                    </Link>
+                  </Button>
+                </div>
+              </Card>
+            </div>
+          </>
+        )}
       </div>
     </DashboardShell>
   );
