@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   ArrowLeft,
   CheckCircle,
@@ -21,6 +22,10 @@ import {
   Trophy,
   Clock,
   Target,
+  Award,
+  ChevronUp,
+  ChevronDown,
+  Filter,
 } from "lucide-react";
 
 interface ExamResult {
@@ -53,6 +58,8 @@ interface ExamResults {
 export default function ExamResultsPage() {
   const router = useRouter();
   const [results, setResults] = useState<ExamResults | null>(null);
+  const [showOnlyIncorrect, setShowOnlyIncorrect] = useState(false);
+  const [isReviewExpanded, setIsReviewExpanded] = useState(true);
 
   useEffect(() => {
     // Get results from localStorage
@@ -108,8 +115,21 @@ export default function ExamResultsPage() {
     return `${minutes}m ${remainingSeconds}s`;
   };
 
+  const viewCertificate = () => {
+    if (score.percentage >= 70) {
+      router.push(`/exams/${exam.id}/certificate`);
+    }
+  };
+
+  // Filter questions based on the toggle
+  const filteredQuestions = showOnlyIncorrect
+    ? results.questions.filter((q) => !q.isCorrect)
+    : results.questions;
+
+  const incorrectCount = results.questions.filter((q) => !q.isCorrect).length;
+
   return (
-    <div className="container mx-auto py-4 md:py-8 px-4 max-w-4xl">
+    <div className="container mx-auto py-4 md:py-8 px-4 max-w-6xl">
       <div className="mb-6">
         <Button
           variant="ghost"
@@ -221,69 +241,172 @@ export default function ExamResultsPage() {
         </Badge>
       </div>
 
-      {/* Detailed Results */}
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Question Review</CardTitle>
-          <CardDescription>
-            Review your answers and see the correct solutions
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            {results.questions.map((result, index) => (
-              <div
-                key={index}
-                className={`p-4 rounded-lg border ${
-                  result.isCorrect
-                    ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20"
-                    : "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20"
-                }`}
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <span className="font-medium text-sm">
-                      Question {index + 1}
-                    </span>
-                    <p className="text-sm mt-1">{result.questionText}</p>
-                  </div>
-                  {result.isCorrect ? (
-                    <CheckCircle className="h-5 w-5 text-green-600 mt-1" />
-                  ) : (
-                    <XCircle className="h-5 w-5 text-red-600 mt-1" />
-                  )}
-                </div>
-
-                <div className="space-y-2 text-sm">
-                  {!result.isCorrect && (
-                    <div>
-                      <span className="font-medium text-red-600">
-                        Your answer:{" "}
-                      </span>
-                      <span>{result.userAnswer || "Not answered"}</span>
-                    </div>
-                  )}
-                  <div>
-                    <span className="font-medium text-green-600">
-                      Correct answer:{" "}
-                    </span>
-                    <span>{result.correctAnswer}</span>
-                  </div>
-                  {result.explanation && (
-                    <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md">
-                      <span className="font-medium text-blue-800 dark:text-blue-200">
-                        Explanation:{" "}
-                      </span>
-                      <span className="text-blue-700 dark:text-blue-300">
-                        {result.explanation}
-                      </span>
-                    </div>
-                  )}
+      {/* Certificate Option */}
+      {score.percentage >= 70 && (
+        <Card className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row items-center justify-between">
+              <div className="flex items-center space-x-4 mb-4 md:mb-0">
+                <Award className="h-12 w-12 text-blue-600" />
+                <div>
+                  <h3 className="text-lg font-semibold text-blue-900">
+                    Congratulations!
+                  </h3>
+                  <p className="text-blue-700">
+                    You have earned a certificate for this exam
+                  </p>
                 </div>
               </div>
-            ))}
+              <Button
+                onClick={viewCertificate}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Award className="mr-2 h-4 w-4" />
+                View Certificate
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Detailed Results - Scrollable Section */}
+      <Card className="mb-8">
+        <CardHeader>
+          <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+            <div>
+              <CardTitle className="flex items-center">
+                Question Review
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsReviewExpanded(!isReviewExpanded)}
+                  className="ml-2"
+                >
+                  {isReviewExpanded ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </Button>
+              </CardTitle>
+              <CardDescription>
+                Review your answers and see the correct solutions
+                {incorrectCount > 0 && (
+                  <span className="ml-2 text-red-600">
+                    • {incorrectCount} incorrect answer
+                    {incorrectCount !== 1 ? "s" : ""}
+                  </span>
+                )}
+              </CardDescription>
+            </div>
+
+            {isReviewExpanded && (
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant={showOnlyIncorrect ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowOnlyIncorrect(!showOnlyIncorrect)}
+                  className="flex items-center"
+                >
+                  <Filter className="mr-2 h-4 w-4" />
+                  {showOnlyIncorrect ? "Show All" : "Show Incorrect Only"}
+                </Button>
+                <Badge variant="outline">
+                  {filteredQuestions.length} question
+                  {filteredQuestions.length !== 1 ? "s" : ""}
+                </Badge>
+              </div>
+            )}
           </div>
-        </CardContent>
+        </CardHeader>
+
+        {isReviewExpanded && (
+          <CardContent className="p-0">
+            <ScrollArea className="h-[600px] w-full">
+              <div className="space-y-4 p-6">
+                {filteredQuestions.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-500" />
+                    <p className="text-lg font-medium">Perfect Score!</p>
+                    <p>All answers were correct. Great job!</p>
+                  </div>
+                ) : (
+                  filteredQuestions.map((result) => {
+                    const originalIndex = results.questions.findIndex(
+                      (q) => q.questionId === result.questionId
+                    );
+                    return (
+                      <div
+                        key={result.questionId}
+                        className={`p-4 rounded-lg border transition-all hover:shadow-md ${
+                          result.isCorrect
+                            ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20"
+                            : "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <Badge variant="outline" className="text-xs">
+                                Question {originalIndex + 1}
+                              </Badge>
+                              {result.isCorrect ? (
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                              ) : (
+                                <XCircle className="h-4 w-4 text-red-600" />
+                              )}
+                            </div>
+                            <p className="text-sm font-medium leading-relaxed mb-3">
+                              {result.questionText}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3 text-sm">
+                          {!result.isCorrect && (
+                            <div className="p-3 bg-red-100 dark:bg-red-950/30 rounded-md">
+                              <span className="font-medium text-red-700 dark:text-red-300">
+                                Your answer:{" "}
+                              </span>
+                              <span className="text-red-600 dark:text-red-400">
+                                {result.userAnswer || "Not answered"}
+                              </span>
+                            </div>
+                          )}
+
+                          <div className="p-3 bg-green-100 dark:bg-green-950/30 rounded-md">
+                            <span className="font-medium text-green-700 dark:text-green-300">
+                              Correct answer:{" "}
+                            </span>
+                            <span className="text-green-600 dark:text-green-400 font-medium">
+                              {result.correctAnswer}
+                            </span>
+                          </div>
+
+                          {result.explanation && (
+                            <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md border border-blue-200 dark:border-blue-900">
+                              <div className="flex items-start space-x-2">
+                                <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                                <div>
+                                  <span className="font-medium text-blue-800 dark:text-blue-200 text-xs uppercase tracking-wide">
+                                    Explanation
+                                  </span>
+                                  <p className="text-blue-700 dark:text-blue-300 mt-1 leading-relaxed">
+                                    {result.explanation}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        )}
       </Card>
 
       {/* Action Buttons */}
