@@ -14,6 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   BookOpen,
   Trophy,
@@ -40,6 +41,7 @@ import {
   PieChart,
   Pie,
   Cell,
+  TooltipProps,
 } from "recharts";
 import { toast } from "sonner";
 
@@ -101,7 +103,7 @@ interface DashboardStats {
   }>;
 }
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
+const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -126,7 +128,7 @@ export default function DashboardPage() {
       setStats(data);
     } catch (error) {
       setError(error.message);
-      toast.error("Failed to load data");
+      toast.error("Failed to load dashboard data");
     } finally {
       setIsLoading(false);
     }
@@ -158,6 +160,37 @@ export default function DashboardPage() {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+  };
+
+  // Custom tooltip for charts with dark mode support
+  interface CustomTooltipProps extends TooltipProps<any, any> {
+    showPercentage?: boolean;
+  }
+
+  const CustomTooltip = ({
+    active,
+    payload,
+    label,
+    showPercentage = true,
+  }: CustomTooltipProps) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-background border border-border rounded-lg shadow-lg p-3">
+          <p className="text-foreground font-medium">{label}</p>
+          {payload.map((entry, index) => (
+            <p key={index} className="text-sm" style={{ color: entry.color }}>
+              {`${entry.name}: ${entry.value}${
+                showPercentage &&
+                (entry.name === "Score" || entry.name === "Accuracy")
+                  ? "%"
+                  : ""
+              }`}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
   };
 
   // Fetch stats on component mount
@@ -217,7 +250,7 @@ export default function DashboardPage() {
                       Keep up the great work!
                     </h2>
                     <p className="text-blue-100">
-                      Youre ranked #{stats.overview.rank} out of{" "}
+                      You are ranked #{stats.overview.rank} out of{" "}
                       {stats.overview.totalUsers} learners
                     </p>
                     <div className="flex items-center space-x-4 text-sm">
@@ -332,27 +365,26 @@ export default function DashboardPage() {
                       <LineChart data={stats.performance.weeklyProgress}>
                         <XAxis
                           dataKey="day"
-                          stroke="#888888"
+                          stroke="hsl(var(--muted-foreground))"
                           fontSize={12}
                           tickLine={false}
                           axisLine={false}
                         />
                         <YAxis
-                          stroke="#888888"
+                          stroke="hsl(var(--muted-foreground))"
                           fontSize={12}
                           tickLine={false}
                           axisLine={false}
                           tickFormatter={(value) => `${value}%`}
                         />
-                        <Tooltip
-                          formatter={(value) => [`${value}%`, "Score"]}
-                        />
+                        <Tooltip content={<CustomTooltip />} />
                         <Line
                           type="monotone"
                           dataKey="score"
                           stroke="hsl(var(--primary))"
                           strokeWidth={2}
-                          activeDot={{ r: 6 }}
+                          activeDot={{ r: 6, fill: "hsl(var(--primary))" }}
+                          name="Score"
                         />
                       </LineChart>
                     </ResponsiveContainer>
@@ -397,7 +429,7 @@ export default function DashboardPage() {
                             )
                           )}
                         </Pie>
-                        <Tooltip />
+                        <Tooltip content={<CustomTooltip />} />
                       </PieChart>
                     </ResponsiveContainer>
                   ) : (
@@ -409,9 +441,9 @@ export default function DashboardPage() {
               </Card>
             </div>
 
-            {/* Recent Activity and Achievements */}
+            {/* Recent Activity and Achievements - Scrollable Sections */}
             <div className="grid gap-6 lg:grid-cols-2">
-              {/* Recent Activity */}
+              {/* Recent Activity - Scrollable */}
               <Card>
                 <CardHeader>
                   <CardTitle>Recent Activity</CardTitle>
@@ -419,53 +451,69 @@ export default function DashboardPage() {
                     Your latest practice sessions and exams
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {stats.recentActivity.map((activity) => (
-                      <div
-                        key={activity.id}
-                        className="flex items-center space-x-4"
-                      >
-                        <div
-                          className={`p-2 rounded-full ${
-                            activity.type === "practice"
-                              ? "bg-blue-100 text-blue-600"
-                              : activity.type === "exam"
-                              ? "bg-green-100 text-green-600"
-                              : "bg-yellow-100 text-yellow-600"
-                          }`}
-                        >
-                          {activity.type === "practice" ? (
-                            <BookOpen className="h-4 w-4" />
-                          ) : activity.type === "exam" ? (
-                            <FileText className="h-4 w-4" />
-                          ) : (
-                            <Award className="h-4 w-4" />
-                          )}
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          <p className="text-sm font-medium">
-                            {activity.title}
+                <CardContent className="p-0">
+                  <ScrollArea className="h-[400px] w-full">
+                    <div className="space-y-4 p-6">
+                      {stats.recentActivity.length > 0 ? (
+                        stats.recentActivity.map((activity) => (
+                          <div
+                            key={activity.id}
+                            className="flex items-center space-x-4 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                          >
+                            <div
+                              className={`p-2 rounded-full ${
+                                activity.type === "practice"
+                                  ? "bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                                  : activity.type === "exam"
+                                  ? "bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400"
+                                  : "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400"
+                              }`}
+                            >
+                              {activity.type === "practice" ? (
+                                <BookOpen className="h-4 w-4" />
+                              ) : activity.type === "exam" ? (
+                                <FileText className="h-4 w-4" />
+                              ) : (
+                                <Award className="h-4 w-4" />
+                              )}
+                            </div>
+                            <div className="flex-1 space-y-1">
+                              <p className="text-sm font-medium">
+                                {activity.title}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {activity.description}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              {activity.score && (
+                                <Badge variant="outline">
+                                  {activity.score}%
+                                </Badge>
+                              )}
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {new Date(
+                                  activity.timestamp
+                                ).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                          <p>No recent activity</p>
+                          <p className="text-sm">
+                            Start practicing to see your activity here
                           </p>
-                          <p className="text-xs text-muted-foreground">
-                            {activity.description}
-                          </p>
                         </div>
-                        <div className="text-right">
-                          {activity.score && (
-                            <Badge variant="outline">{activity.score}%</Badge>
-                          )}
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {new Date(activity.timestamp).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      )}
+                    </div>
+                  </ScrollArea>
                 </CardContent>
               </Card>
 
-              {/* Recent Achievements */}
+              {/* Recent Achievements - Scrollable */}
               <Card>
                 <CardHeader>
                   <CardTitle>Recent Achievements</CardTitle>
@@ -473,48 +521,60 @@ export default function DashboardPage() {
                     Your latest unlocked achievements
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {stats.achievements.map((achievement) => (
-                      <div
-                        key={achievement.id}
-                        className="flex items-center space-x-4"
-                      >
-                        <div
-                          className={`p-2 rounded-full ${getAchievementColor(
-                            achievement.rarity
-                          )} text-white`}
-                        >
-                          <Award className="h-4 w-4" />
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          <p className="text-sm font-medium">
-                            {achievement.title}
+                <CardContent className="p-0">
+                  <ScrollArea className="h-[400px] w-full">
+                    <div className="space-y-4 p-6">
+                      {stats.achievements.length > 0 ? (
+                        stats.achievements.map((achievement) => (
+                          <div
+                            key={achievement.id}
+                            className="flex items-center space-x-4 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                          >
+                            <div
+                              className={`p-2 rounded-full ${getAchievementColor(
+                                achievement.rarity
+                              )} text-white`}
+                            >
+                              <Award className="h-4 w-4" />
+                            </div>
+                            <div className="flex-1 space-y-1">
+                              <p className="text-sm font-medium">
+                                {achievement.title}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {achievement.description}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <Badge variant="outline" className="capitalize">
+                                {achievement.rarity}
+                              </Badge>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {new Date(
+                                  achievement.unlockedAt
+                                ).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <Trophy className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                          <p>No achievements yet</p>
+                          <p className="text-sm">
+                            Complete practice sessions to unlock achievements
                           </p>
-                          <p className="text-xs text-muted-foreground">
-                            {achievement.description}
-                          </p>
                         </div>
-                        <div className="text-right">
-                          <Badge variant="outline" className="capitalize">
-                            {achievement.rarity}
-                          </Badge>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {new Date(
-                              achievement.unlockedAt
-                            ).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      )}
+                    </div>
+                  </ScrollArea>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Recommendations and Upcoming Exams */}
+            {/* Recommendations and Upcoming Exams - Scrollable Sections */}
             <div className="grid gap-6 lg:grid-cols-2">
-              {/* Personalized Recommendations */}
+              {/* Personalized Recommendations - Scrollable */}
               <Card>
                 <CardHeader>
                   <CardTitle>Recommended for You</CardTitle>
@@ -522,28 +582,44 @@ export default function DashboardPage() {
                     Personalized suggestions to improve your performance
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {stats.recommendations.map((rec, index) => (
-                      <div key={index} className="p-4 border rounded-lg">
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-1">
-                            <h4 className="font-medium">{rec.title}</h4>
-                            <p className="text-sm text-muted-foreground">
-                              {rec.description}
-                            </p>
+                <CardContent className="p-0">
+                  <ScrollArea className="h-[350px] w-full">
+                    <div className="space-y-4 p-6">
+                      {stats.recommendations.length > 0 ? (
+                        stats.recommendations.map((rec, index) => (
+                          <div
+                            key={index}
+                            className="p-4 border rounded-lg hover:shadow-md transition-shadow"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="space-y-1 flex-1">
+                                <h4 className="font-medium">{rec.title}</h4>
+                                <p className="text-sm text-muted-foreground">
+                                  {rec.description}
+                                </p>
+                              </div>
+                              <Button asChild size="sm" className="ml-4">
+                                <Link href={rec.href}>{rec.action}</Link>
+                              </Button>
+                            </div>
                           </div>
-                          <Button asChild size="sm">
-                            <Link href={rec.href}>{rec.action}</Link>
-                          </Button>
+                        ))
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                          <p>No recommendations available</p>
+                          <p className="text-sm">
+                            Complete more activities to get personalized
+                            suggestions
+                          </p>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      )}
+                    </div>
+                  </ScrollArea>
                 </CardContent>
               </Card>
 
-              {/* Upcoming Exams */}
+              {/* Available Exams - Scrollable */}
               <Card>
                 <CardHeader>
                   <CardTitle>Available Exams</CardTitle>
@@ -551,50 +627,68 @@ export default function DashboardPage() {
                     Exams you can take to test your knowledge
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {stats.upcomingExams.map((exam) => (
-                      <div key={exam.id} className="p-4 border rounded-lg">
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-2">
-                            <h4 className="font-medium">{exam.title}</h4>
-                            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                              <div className="flex items-center">
-                                <FileText className="mr-1 h-3 w-3" />
-                                <span>{exam.questionCount} questions</span>
+                <CardContent className="p-0">
+                  <ScrollArea className="h-[350px] w-full">
+                    <div className="space-y-4 p-6">
+                      {stats.upcomingExams.length > 0 ? (
+                        stats.upcomingExams.map((exam) => (
+                          <div
+                            key={exam.id}
+                            className="p-4 border rounded-lg hover:shadow-md transition-shadow"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="space-y-2 flex-1">
+                                <h4 className="font-medium">{exam.title}</h4>
+                                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                                  <div className="flex items-center">
+                                    <FileText className="mr-1 h-3 w-3" />
+                                    <span>{exam.questionCount} questions</span>
+                                  </div>
+                                  <div className="flex items-center">
+                                    <Clock className="mr-1 h-3 w-3" />
+                                    <span>{exam.timeLimit} min</span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Badge
+                                    variant="outline"
+                                    className="capitalize"
+                                  >
+                                    {getCategoryDisplayName(exam.category)}
+                                  </Badge>
+                                  <Badge
+                                    className={
+                                      exam.difficulty === "easy"
+                                        ? "bg-green-500"
+                                        : exam.difficulty === "medium"
+                                        ? "bg-yellow-500"
+                                        : "bg-red-500"
+                                    }
+                                  >
+                                    {exam.difficulty}
+                                  </Badge>
+                                </div>
                               </div>
-                              <div className="flex items-center">
-                                <Clock className="mr-1 h-3 w-3" />
-                                <span>{exam.timeLimit} min</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Badge variant="outline" className="capitalize">
-                                {getCategoryDisplayName(exam.category)}
-                              </Badge>
-                              <Badge
-                                className={
-                                  exam.difficulty === "easy"
-                                    ? "bg-green-500"
-                                    : exam.difficulty === "medium"
-                                    ? "bg-yellow-500"
-                                    : "bg-red-500"
-                                }
-                              >
-                                {exam.difficulty}
-                              </Badge>
+                              <Button asChild size="sm" className="ml-4">
+                                <Link href={`/exams/${exam.id}`}>
+                                  <Play className="mr-1 h-3 w-3" />
+                                  Start
+                                </Link>
+                              </Button>
                             </div>
                           </div>
-                          <Button asChild size="sm">
-                            <Link href={`/exams/${exam.id}`}>
-                              <Play className="mr-1 h-3 w-3" />
-                              Start
-                            </Link>
-                          </Button>
+                        ))
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                          <p>No exams available</p>
+                          <p className="text-sm">
+                            Check back later for new exams
+                          </p>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      )}
+                    </div>
+                  </ScrollArea>
                 </CardContent>
               </Card>
             </div>
