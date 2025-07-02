@@ -1,5 +1,5 @@
 "use client";
-import { use } from "react";
+import { use, useCallback } from "react";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -27,6 +27,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import Image from "next/image";
 
 interface Question {
   id: number;
@@ -79,7 +80,7 @@ export default function PracticeSessionPage({
       : 0;
 
   // Fetch subject and questions
-  const fetchSubjectData = async () => {
+  const fetchSubjectData = useCallback(async () => {
     setIsLoading(true);
     setError("");
     try {
@@ -92,13 +93,13 @@ export default function PracticeSessionPage({
 
       setSubject(data.subject);
       setQuestions(data.questions);
-    } catch (error) {
+    } catch (error: any) {
       setError(error.message);
       toast.error("Failed to load practice session");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [subjectId]);
 
   // Handle answer selection
   const handleAnswerSelect = (answer: string) => {
@@ -131,8 +132,10 @@ export default function PracticeSessionPage({
   };
 
   // Finish practice session
-  const finishPractice = () => {
-    // Calculate results
+
+  // ...
+
+  const finishPractice = useCallback(() => {
     const results = questions.map((question, index) => {
       const userAnswer = selectedAnswers[index];
       const isCorrect = userAnswer === question.correctAnswer;
@@ -149,7 +152,6 @@ export default function PracticeSessionPage({
       (correctAnswers / questions.length) * 100
     );
 
-    // Store results in localStorage
     const sessionResults = {
       subject,
       results,
@@ -162,10 +164,8 @@ export default function PracticeSessionPage({
     };
 
     localStorage.setItem("practiceResults", JSON.stringify(sessionResults));
-
-    // Navigate to results page
     router.push("/practice/results");
-  };
+  }, [questions, selectedAnswers, subject, router]);
 
   // Format time as MM:SS
   const formatTime = (seconds: number) => {
@@ -184,15 +184,14 @@ export default function PracticeSessionPage({
       }, 1000);
       return () => clearTimeout(timer);
     } else {
-      // Time's up - auto finish
       finishPractice();
     }
-  }, [timeRemaining]);
+  }, [timeRemaining, finishPractice]); // ✅ No more ESLint warning
 
   // Fetch data on component mount
   useEffect(() => {
     fetchSubjectData();
-  }, [subjectId]);
+  }, [fetchSubjectData]); // ✅ no more warning
 
   // Loading state
   if (isLoading) {
@@ -290,10 +289,16 @@ export default function PracticeSessionPage({
         {currentQuestion.imageUrl && (
           <CardContent className="pb-0">
             <div className="overflow-hidden rounded-md">
-              <img
+              <Image
                 src={currentQuestion.imageUrl}
                 alt="Question diagram"
+                width={800} // adjust based on your layout
+                height={480} // maintain aspect ratio
                 className="w-full object-cover max-h-64 md:max-h-96"
+                style={{
+                  objectFit: "cover",
+                  maxHeight: "16rem",
+                }} // inline styles if needed
               />
             </div>
           </CardContent>

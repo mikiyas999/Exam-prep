@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { Button } from "@/components/ui/button";
@@ -83,7 +83,7 @@ export default function QuestionsPage() {
   const [isDeleting, setIsDeleting] = useState<number | null>(null);
 
   // Fetch questions
-  const fetchQuestions = async () => {
+  const fetchQuestions = useCallback(async () => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
@@ -109,7 +109,14 @@ export default function QuestionsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [
+    pagination.page,
+    category,
+    questionType,
+    difficulty,
+    search,
+    pagination.limit,
+  ]);
 
   // Delete question
   const handleDelete = async (id: number) => {
@@ -156,7 +163,7 @@ export default function QuestionsPage() {
   // Fetch questions on component mount and when filters change
   useEffect(() => {
     fetchQuestions();
-  }, [pagination.page, category, questionType, difficulty, search]);
+  }, [fetchQuestions]);
 
   return (
     <DashboardShell>

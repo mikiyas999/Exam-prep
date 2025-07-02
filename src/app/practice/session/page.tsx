@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +24,7 @@ import {
   XCircle,
   AlertCircle,
 } from "lucide-react";
+import Image from "next/image";
 
 interface Question {
   id: number;
@@ -90,19 +91,6 @@ export default function PracticeSessionPage() {
     }
   }, [router]);
 
-  // Timer effect
-  useEffect(() => {
-    if (timeRemaining !== null && timeRemaining > 0) {
-      const timer = setTimeout(() => {
-        setTimeRemaining(timeRemaining - 1);
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else if (timeRemaining === 0) {
-      // Time's up - auto finish
-      finishPractice();
-    }
-  }, [timeRemaining]);
-
   // Handle answer selection
   const handleAnswerSelect = (answer: string) => {
     setSelectedAnswers({
@@ -134,10 +122,10 @@ export default function PracticeSessionPage() {
   };
 
   // Finish practice session
-  const finishPractice = () => {
+  // ⬅️ Make sure this is before the useEffect
+  const finishPractice = useCallback(() => {
     if (!session) return;
 
-    // Calculate results
     const results = session.questions.map((question, index) => {
       const userAnswer = selectedAnswers[index];
       const isCorrect = userAnswer === question.correctAnswer;
@@ -154,7 +142,6 @@ export default function PracticeSessionPage() {
       (correctAnswers / session.questions.length) * 100
     );
 
-    // Store results in localStorage
     const sessionResults = {
       subject: {
         id: "custom-practice",
@@ -171,14 +158,20 @@ export default function PracticeSessionPage() {
     };
 
     localStorage.setItem("practiceResults", JSON.stringify(sessionResults));
-
-    // Clear session data
     localStorage.removeItem("practiceSession");
-
-    // Navigate to results page
     router.push("/practice/results");
-  };
+  }, [router, selectedAnswers, session]);
 
+  useEffect(() => {
+    if (timeRemaining !== null && timeRemaining > 0) {
+      const timer = setTimeout(() => {
+        setTimeRemaining(timeRemaining - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (timeRemaining === 0) {
+      finishPractice(); // ✅ Called inside
+    }
+  }, [timeRemaining, finishPractice]); // ✅ FinishPractice added here
   // Format time as MM:SS
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -280,10 +273,13 @@ export default function PracticeSessionPage() {
         {currentQuestion.imageUrl && (
           <CardContent className="pb-0">
             <div className="overflow-hidden rounded-md">
-              <img
+              <Image
                 src={currentQuestion.imageUrl}
                 alt="Question diagram"
-                className="w-full object-cover max-h-64 md:max-h-96"
+                fill
+                style={{ objectFit: "cover" }}
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority // if you want to preload this image
               />
             </div>
           </CardContent>

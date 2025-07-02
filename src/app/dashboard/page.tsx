@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { Button } from "@/components/ui/button";
@@ -112,7 +112,7 @@ export default function DashboardPage() {
   const [timeframe] = useState("week");
 
   // Fetch dashboard stats
-  const fetchDashboardStats = async () => {
+  const fetchDashboardStats = useCallback(async () => {
     setIsLoading(true);
     setError("");
     try {
@@ -132,7 +132,7 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [timeframe]);
 
   // Get achievement rarity color
   const getAchievementColor = (rarity: string) => {
@@ -196,7 +196,7 @@ export default function DashboardPage() {
   // Fetch stats on component mount
   useEffect(() => {
     fetchDashboardStats();
-  }, [timeframe]);
+  }, [fetchDashboardStats]);
 
   return (
     <DashboardShell>

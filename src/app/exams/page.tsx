@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { Button } from "@/components/ui/button";
@@ -55,7 +55,7 @@ export default function ExamsPage() {
   const [error, setError] = useState("");
 
   // Fetch exams
-  const fetchExams = async () => {
+  const fetchExams = useCallback(async () => {
     setIsLoading(true);
     setError("");
     try {
@@ -76,7 +76,7 @@ export default function ExamsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [category]);
 
   // Filter exams based on search query
   const filteredExams = exams.filter(
@@ -88,7 +88,7 @@ export default function ExamsPage() {
   // Fetch exams on component mount and when category changes
   useEffect(() => {
     fetchExams();
-  }, [category]);
+  }, [fetchExams]);
 
   return (
     <DashboardShell>

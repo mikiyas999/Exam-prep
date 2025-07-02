@@ -1,41 +1,36 @@
-"use client"
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { Button } from "@/components/ui/button";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
-} from "@/components/ui/tabs";
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { z } from "zod";
@@ -43,6 +38,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Upload, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import Image from "next/image";
 
 const formSchema = z.object({
   questionText: z.string().min(5, {
@@ -73,17 +69,21 @@ const formSchema = z.object({
 });
 
 const bulkUploadSchema = z.object({
-  questions: z.array(z.object({
-    questionText: z.string().min(5),
-    optionA: z.string().min(1),
-    optionB: z.string().min(1),
-    optionC: z.string().min(1),
-    correctAnswer: z.enum(["A", "B", "C"]),
-    explanation: z.string().optional(),
-    category: z.enum(["amt", "hostess", "pilot"]),
-    questionType: z.enum(["math", "reading", "mechanical", "abstract"]),
-    difficulty: z.enum(["easy", "medium", "hard"]),
-  })).min(1, "At least one question is required"),
+  questions: z
+    .array(
+      z.object({
+        questionText: z.string().min(5),
+        optionA: z.string().min(1),
+        optionB: z.string().min(1),
+        optionC: z.string().min(1),
+        correctAnswer: z.enum(["A", "B", "C"]),
+        explanation: z.string().optional(),
+        category: z.enum(["amt", "hostess", "pilot"]),
+        questionType: z.enum(["math", "reading", "mechanical", "abstract"]),
+        difficulty: z.enum(["easy", "medium", "hard"]),
+      })
+    )
+    .min(1, "At least one question is required"),
 });
 
 export default function NewQuestionPage() {
@@ -95,7 +95,7 @@ export default function NewQuestionPage() {
   const [bulkErrors, setBulkErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isBulkSubmitting, setIsBulkSubmitting] = useState(false);
-  
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -134,12 +134,12 @@ export default function NewQuestionPage() {
         throw new Error(data.message || "Failed to create question");
       }
 
-      toast.success("create question successfully")
+      toast.success("create question successfully");
 
       router.push("/admin/questions");
-    } catch (error: any) {
-          toast.error("Failed to create questions")
-    
+    } catch (error) {
+      toast.error("Failed to create questions");
+      console.log(error);
     } finally {
       setIsSubmitting(false);
     }
@@ -152,11 +152,10 @@ export default function NewQuestionPage() {
       // For now, we'll create a mock URL
       const mockUrl = `https://example.com/images/${file.name}`;
       setImageUrl(mockUrl);
-      
-      toast.success("Image has been uploaded successfully")
-    } catch (error) {
-            toast.error("Image has not been uploaded successfully")
 
+      toast.success("Image has been uploaded successfully");
+    } catch (error) {
+      toast.error("Image has not been uploaded successfully");
     }
   };
 
@@ -166,55 +165,62 @@ export default function NewQuestionPage() {
     reader.onload = (e) => {
       try {
         const csv = e.target?.result as string;
-        const lines = csv.split('\n');
-        const headers = lines[0].split(',').map(h => h.trim());
-        
+        const lines = csv.split("\n");
+        const headers = lines[0].split(",").map((h) => h.trim());
+
         const expectedHeaders = [
-          'questionText', 'optionA', 'optionB', 'optionC', 
-          'correctAnswer', 'explanation', 'category', 
-          'questionType', 'difficulty'
+          "questionText",
+          "optionA",
+          "optionB",
+          "optionC",
+          "correctAnswer",
+          "explanation",
+          "category",
+          "questionType",
+          "difficulty",
         ];
-        
+
         // Validate headers
-        const missingHeaders = expectedHeaders.filter(h => !headers.includes(h));
+        const missingHeaders = expectedHeaders.filter(
+          (h) => !headers.includes(h)
+        );
         if (missingHeaders.length > 0) {
-          setBulkErrors([`Missing headers: ${missingHeaders.join(', ')}`]);
+          setBulkErrors([`Missing headers: ${missingHeaders.join(", ")}`]);
           return;
         }
-        
+
         const questions = [];
         const errors = [];
-        
+
         for (let i = 1; i < lines.length; i++) {
-          if (lines[i].trim() === '') continue;
-          
-          const values = lines[i].split(',').map(v => v.trim());
+          if (lines[i].trim() === "") continue;
+
+          const values = lines[i].split(",").map((v) => v.trim());
           const questionObj: any = {};
-          
+
           headers.forEach((header, index) => {
-            questionObj[header] = values[index] || '';
+            questionObj[header] = values[index] || "";
           });
-          
+
           // Validate each question
           try {
-            const validatedQuestion = bulkUploadSchema.shape.questions.element.parse(questionObj);
+            const validatedQuestion =
+              bulkUploadSchema.shape.questions.element.parse(questionObj);
             questions.push(validatedQuestion);
           } catch (error) {
             errors.push(`Row ${i + 1}: Invalid data format`);
           }
         }
-        
+
         setBulkQuestions(questions);
         setBulkErrors(errors);
-        
+
         if (questions.length > 0) {
-          toast({
-            title: "CSV Parsed",
-            description: `Found ${questions.length} valid questions`,
-          });
+          toast.success(`Found ${questions.length} valid questions`);
         }
       } catch (error) {
-        setBulkErrors(['Failed to parse CSV file']);
+        setBulkErrors(["Failed to parse CSV file"]);
+        console.error("sd");
       }
     };
     reader.readAsText(file);
@@ -223,11 +229,7 @@ export default function NewQuestionPage() {
   // Handle bulk upload submission
   const handleBulkSubmit = async () => {
     if (bulkQuestions.length === 0) {
-      toast({
-        title: "No questions",
-        description: "Please upload a valid CSV file first",
-        variant: "destructive",
-      });
+      toast.success("Please upload a valid CSV file first");
       return;
     }
 
@@ -247,13 +249,11 @@ export default function NewQuestionPage() {
         throw new Error(data.message || "Failed to create questions");
       }
 
-           toast.success("questions create successfully ")
-
+      toast.success("questions create successfully ");
 
       router.push("/admin/questions");
-    } catch (error: any) {
-           toast.error("Failed to create questions")
-
+    } catch (error) {
+      toast.error("Failed to create questions");
     } finally {
       setIsBulkSubmitting(false);
     }
@@ -262,37 +262,43 @@ export default function NewQuestionPage() {
   // Generate CSV template
   const downloadTemplate = () => {
     const headers = [
-      'questionText', 'optionA', 'optionB', 'optionC', 
-      'correctAnswer', 'explanation', 'category', 
-      'questionType', 'difficulty'
+      "questionText",
+      "optionA",
+      "optionB",
+      "optionC",
+      "correctAnswer",
+      "explanation",
+      "category",
+      "questionType",
+      "difficulty",
     ];
-    
+
     const sampleRow = [
-      'Find 32% of 897',
-      '287.04',
-      '460', 
-      '345',
-      'A',
-      'To find 32% of 897, multiply 897 by 0.32',
-      'amt',
-      'math',
-      'medium'
+      "Find 32% of 897",
+      "287.04",
+      "460",
+      "345",
+      "A",
+      "To find 32% of 897, multiply 897 by 0.32",
+      "amt",
+      "math",
+      "medium",
     ];
-    
-    const csvContent = [headers.join(','), sampleRow.join(',')].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+
+    const csvContent = [headers.join(","), sampleRow.join(",")].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = 'questions_template.csv';
+    a.download = "questions_template.csv";
     a.click();
     window.URL.revokeObjectURL(url);
   };
 
   return (
     <DashboardShell>
-      <DashboardHeader 
-        heading="Add New Question" 
+      <DashboardHeader
+        heading="Add New Question"
         text="Create a new question for the exam bank."
       />
 
@@ -301,7 +307,7 @@ export default function NewQuestionPage() {
           <TabsTrigger value="single">Single Question</TabsTrigger>
           <TabsTrigger value="bulk">Bulk Upload</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="single">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -320,9 +326,9 @@ export default function NewQuestionPage() {
                       <FormItem>
                         <FormLabel>Question Text</FormLabel>
                         <FormControl>
-                          <Textarea 
-                            placeholder="Enter the question text..." 
-                            {...field} 
+                          <Textarea
+                            placeholder="Enter the question text..."
+                            {...field}
                             className="min-h-[100px]"
                           />
                         </FormControl>
@@ -330,14 +336,16 @@ export default function NewQuestionPage() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <div>
                     <Label>Question Image (Optional)</Label>
                     <div className="mt-2 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => document.getElementById("image-upload")?.click()}
+                        onClick={() =>
+                          document.getElementById("image-upload")?.click()
+                        }
                         className="w-full sm:w-auto"
                       >
                         <Upload className="mr-2 h-4 w-4" />
@@ -364,15 +372,17 @@ export default function NewQuestionPage() {
                     </div>
                     {imageUrl && (
                       <div className="mt-2">
-                        <img 
-                          src={imageUrl} 
-                          alt="Question preview" 
-                          className="max-w-xs rounded-md border"
+                        <Image
+                          src={imageUrl}
+                          alt="Question preview"
+                          width={400} // or any desired width
+                          height={300} // maintain your image aspect ratio
+                          className="max-w-xs rounded-md border object-contain"
                         />
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="grid gap-4 md:grid-cols-3">
                     <FormField
                       control={form.control}
@@ -414,15 +424,15 @@ export default function NewQuestionPage() {
                       )}
                     />
                   </div>
-                  
+
                   <FormField
                     control={form.control}
                     name="correctAnswer"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Correct Answer</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
+                        <Select
+                          onValueChange={field.onChange}
                           defaultValue={field.value}
                         >
                           <FormControl>
@@ -440,7 +450,7 @@ export default function NewQuestionPage() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="explanation"
@@ -448,16 +458,16 @@ export default function NewQuestionPage() {
                       <FormItem>
                         <FormLabel>Explanation (Optional)</FormLabel>
                         <FormControl>
-                          <Textarea 
-                            placeholder="Explain why this answer is correct..." 
-                            {...field} 
+                          <Textarea
+                            placeholder="Explain why this answer is correct..."
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  
+
                   <div className="grid gap-4 md:grid-cols-3">
                     <FormField
                       control={form.control}
@@ -465,8 +475,8 @@ export default function NewQuestionPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Category</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
+                          <Select
+                            onValueChange={field.onChange}
                             defaultValue={field.value}
                           >
                             <FormControl>
@@ -484,15 +494,15 @@ export default function NewQuestionPage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="questionType"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Question Type</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
+                          <Select
+                            onValueChange={field.onChange}
                             defaultValue={field.value}
                           >
                             <FormControl>
@@ -503,23 +513,27 @@ export default function NewQuestionPage() {
                             <SelectContent>
                               <SelectItem value="math">Math</SelectItem>
                               <SelectItem value="reading">Reading</SelectItem>
-                              <SelectItem value="mechanical">Mechanical</SelectItem>
-                              <SelectItem value="abstract">Abstract Reasoning</SelectItem>
+                              <SelectItem value="mechanical">
+                                Mechanical
+                              </SelectItem>
+                              <SelectItem value="abstract">
+                                Abstract Reasoning
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="difficulty"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Difficulty</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
+                          <Select
+                            onValueChange={field.onChange}
                             defaultValue={field.value}
                           >
                             <FormControl>
@@ -540,8 +554,8 @@ export default function NewQuestionPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex flex-col space-y-2 sm:flex-row sm:justify-between sm:space-y-0">
-                  <Button 
-                    type="button" 
+                  <Button
+                    type="button"
                     variant="outline"
                     onClick={() => router.push("/admin/questions")}
                     className="w-full sm:w-auto"
@@ -549,8 +563,8 @@ export default function NewQuestionPage() {
                   >
                     Cancel
                   </Button>
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="w-full sm:w-auto"
                     disabled={isSubmitting}
                   >
@@ -568,7 +582,7 @@ export default function NewQuestionPage() {
             </form>
           </Form>
         </TabsContent>
-        
+
         <TabsContent value="bulk">
           <Card>
             <CardHeader>
@@ -595,7 +609,8 @@ export default function NewQuestionPage() {
                 <Alert>
                   <CheckCircle className="h-4 w-4" />
                   <AlertDescription>
-                    Successfully parsed {bulkQuestions.length} questions from CSV file.
+                    Successfully parsed {bulkQuestions.length} questions from
+                    CSV file.
                   </AlertDescription>
                 </Alert>
               )}
@@ -614,7 +629,9 @@ export default function NewQuestionPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => document.getElementById("csv-upload")?.click()}
+                    onClick={() =>
+                      document.getElementById("csv-upload")?.click()
+                    }
                   >
                     Browse Files
                   </Button>
@@ -638,9 +655,11 @@ export default function NewQuestionPage() {
                   )}
                 </div>
               </div>
-              
+
               <div>
-                <h3 className="mb-2 text-base md:text-lg font-medium">CSV Format</h3>
+                <h3 className="mb-2 text-base md:text-lg font-medium">
+                  CSV Format
+                </h3>
                 <p className="text-sm text-muted-foreground">
                   Your CSV file should have the following columns:
                 </p>
@@ -655,9 +674,9 @@ export default function NewQuestionPage() {
                   <li>questionType (math, reading, mechanical, or abstract)</li>
                   <li>difficulty (easy, medium, or hard)</li>
                 </ul>
-                <Button 
-                  className="mt-4" 
-                  variant="outline" 
+                <Button
+                  className="mt-4"
+                  variant="outline"
                   size="sm"
                   onClick={downloadTemplate}
                 >
@@ -666,8 +685,8 @@ export default function NewQuestionPage() {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-2 sm:flex-row sm:justify-between sm:space-y-0">
-              <Button 
-                type="button" 
+              <Button
+                type="button"
                 variant="outline"
                 onClick={() => router.push("/admin/questions")}
                 className="w-full sm:w-auto"
@@ -675,8 +694,8 @@ export default function NewQuestionPage() {
               >
                 Cancel
               </Button>
-              <Button 
-                type="button" 
+              <Button
+                type="button"
                 className="w-full sm:w-auto"
                 onClick={handleBulkSubmit}
                 disabled={isBulkSubmitting || bulkQuestions.length === 0}

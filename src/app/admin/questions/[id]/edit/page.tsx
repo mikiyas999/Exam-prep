@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
@@ -37,6 +37,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Upload, Loader2, AlertCircle, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import Image from "next/image";
 
 const formSchema = z.object({
   questionText: z.string().min(5, {
@@ -109,7 +110,8 @@ export default function EditQuestionPage({
   });
 
   // Fetch question data
-  const fetchQuestion = async () => {
+
+  const fetchQuestion = useCallback(async () => {
     setIsLoading(true);
     setError("");
     try {
@@ -124,7 +126,6 @@ export default function EditQuestionPage({
       setQuestion(questionData);
       setImageUrl(questionData.imageUrl || "");
 
-      // Populate form with existing data
       form.reset({
         questionText: questionData.questionText,
         optionA: questionData.options[0] || "",
@@ -136,13 +137,13 @@ export default function EditQuestionPage({
         questionType: questionData.questionType,
         difficulty: questionData.difficulty,
       });
-    } catch (error) {
+    } catch (error: any) {
       setError(error.message);
       toast.error("Failed to load question");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [questionId, form]);
 
   // Handle form submission
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -198,7 +199,7 @@ export default function EditQuestionPage({
     if (questionId) {
       fetchQuestion();
     }
-  }, [questionId]);
+  }, [questionId, fetchQuestion]);
 
   // Loading state
   if (isLoading) {
@@ -309,10 +310,12 @@ export default function EditQuestionPage({
                   </div>
                   {imageUrl && (
                     <div className="mt-2">
-                      <img
+                      <Image
                         src={imageUrl}
                         alt="Question preview"
-                        className="max-w-xs rounded-md border"
+                        width={400} // adjust width
+                        height={300} // adjust height to keep aspect ratio
+                        className="max-w-xs rounded-md border object-contain"
                       />
                     </div>
                   )}

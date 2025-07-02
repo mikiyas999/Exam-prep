@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -93,7 +93,7 @@ export default function ExamPage({
   const answeredQuestions = Object.keys(selectedAnswers).length;
 
   // Fetch exam and questions
-  const fetchExamData = async () => {
+  const fetchExamData = useCallback(async () => {
     setIsLoading(true);
     setError("");
     try {
@@ -117,7 +117,7 @@ export default function ExamPage({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [examId]);
 
   // Start exam with animation
   const startExam = () => {
@@ -166,7 +166,7 @@ export default function ExamPage({
   };
 
   // Submit exam
-  const submitExam = async () => {
+  const submitExam = useCallback(async () => {
     setIsSubmitting(true);
     try {
       const response = await fetch(`/api/exams/${examId}/submit`, {
@@ -190,7 +190,6 @@ export default function ExamPage({
 
       toast.success("Exam submitted successfully");
 
-      // Store results and navigate to results page
       localStorage.setItem(
         "examResults",
         JSON.stringify({
@@ -206,7 +205,7 @@ export default function ExamPage({
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [examId, exam, router, selectedAnswers, timeRemaining]);
 
   // Format time as MM:SS
   const formatTime = (seconds: number) => {
@@ -253,17 +252,16 @@ export default function ExamPage({
       }, 1000);
       return () => clearTimeout(timer);
     } else if (examStarted && timeRemaining === 0) {
-      // Time's up - auto submit
       submitExam();
     }
-  }, [examStarted, timeRemaining]);
+  }, [examStarted, timeRemaining, submitExam]); // ✅ fixed
 
   // Fetch data on component mount
   useEffect(() => {
     if (examId) {
       fetchExamData();
     }
-  }, [examId]);
+  }, [examId, fetchExamData]); // ✅ no warning
 
   // Loading state
   if (isLoading) {

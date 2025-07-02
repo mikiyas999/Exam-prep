@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import Image from "next/image";
 
 interface Question {
   id: number;
@@ -50,7 +51,7 @@ export default function ViewQuestionPage({
   const [error, setError] = useState("");
 
   // Fetch question data
-  const fetchQuestion = async () => {
+  const fetchQuestion = useCallback(async () => {
     setIsLoading(true);
     setError("");
     try {
@@ -62,13 +63,13 @@ export default function ViewQuestionPage({
       }
 
       setQuestion(data.question);
-    } catch (error) {
+    } catch (error: any) {
       setError(error.message);
       toast.error("Failed to load question");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [questionId]);
 
   // Get category display name
   const getCategoryDisplayName = (category: string) => {
@@ -106,7 +107,7 @@ export default function ViewQuestionPage({
     if (questionId) {
       fetchQuestion();
     }
-  }, [questionId]);
+  }, [questionId, fetchQuestion]);
 
   // Loading state
   if (isLoading) {
@@ -203,10 +204,12 @@ export default function ViewQuestionPage({
               <div>
                 <h3 className="text-lg font-semibold mb-3">Image</h3>
                 <div className="border rounded-lg overflow-hidden max-w-md">
-                  <img
+                  <Image
                     src={question.imageUrl}
                     alt="Question diagram"
-                    className="w-full object-cover"
+                    fill
+                    style={{ objectFit: "cover" }}
+                    sizes="100vw"
                   />
                 </div>
               </div>

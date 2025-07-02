@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { Button } from "@/components/ui/button";
@@ -151,7 +151,7 @@ export default function AdminUsersPage() {
   });
 
   // Fetch users
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     setError("");
     try {
@@ -170,136 +170,148 @@ export default function AdminUsersPage() {
 
       setUsers(data.users);
       setPagination(data.pagination);
-    } catch (error) {
+    } catch (error: any) {
       setError(error.message);
       toast.error("Failed to fetch users");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [role, search, pagination.page, pagination.limit]);
 
   // Create user
-  const handleCreateUser = async (values: z.infer<typeof createUserSchema>) => {
-    setIsSubmitting(true);
-    try {
-      const response = await fetch("/api/admin/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
+  const handleCreateUser = useCallback(
+    async (values: z.infer<typeof createUserSchema>) => {
+      setIsSubmitting(true);
+      try {
+        const response = await fetch("/api/admin/users", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(values),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to create user");
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to create user");
+        }
+
+        toast.success("User created successfully");
+
+        setIsCreateDialogOpen(false);
+        createForm.reset();
+        fetchUsers();
+      } catch (error) {
+        toast.error("Failed to create user");
+        console.log(error);
+      } finally {
+        setIsSubmitting(false);
       }
-
-      toast.success("User created successfully");
-
-      setIsCreateDialogOpen(false);
-      createForm.reset();
-      fetchUsers();
-    } catch (error) {
-      toast.error("Failed to create user");
-      console.log(error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    },
+    [createForm, fetchUsers]
+  );
 
   // Edit user
-  const handleEditUser = async (values: z.infer<typeof editUserSchema>) => {
-    if (!editingUser) return;
+  const handleEditUser = useCallback(
+    async (values: z.infer<typeof editUserSchema>) => {
+      if (!editingUser) return;
 
-    setIsSubmitting(true);
-    try {
-      const updateData = { ...values };
-      if (!updateData.password) {
-        delete updateData.password;
+      setIsSubmitting(true);
+      try {
+        const updateData = { ...values };
+        if (!updateData.password) {
+          delete updateData.password;
+        }
+
+        const response = await fetch(`/api/admin/users/${editingUser.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updateData),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to update user");
+        }
+
+        toast.success("User updated successfully");
+
+        setIsEditDialogOpen(false);
+        setEditingUser(null);
+        editForm.reset();
+        fetchUsers();
+      } catch (error) {
+        toast.error("Failed to update user");
+        console.log(error);
+      } finally {
+        setIsSubmitting(false);
       }
-
-      const response = await fetch(`/api/admin/users/${editingUser.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updateData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to update user");
-      }
-
-      toast.success("User updated successfully");
-
-      setIsEditDialogOpen(false);
-      setEditingUser(null);
-      editForm.reset();
-      fetchUsers();
-    } catch (error) {
-      toast.error("Failed to update user");
-      console.log(error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    },
+    [editingUser, editForm, fetchUsers]
+  );
 
   // Delete user
-  const handleDelete = async (id: number) => {
-    setIsDeleting(id);
-    try {
-      const response = await fetch(`/api/admin/users/${id}`, {
-        method: "DELETE",
-      });
+  const handleDelete = useCallback(
+    async (id: number) => {
+      setIsDeleting(id);
+      try {
+        const response = await fetch(`/api/admin/users/${id}`, {
+          method: "DELETE",
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to delete user");
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to delete user");
+        }
+
+        toast.success("User deleted successfully");
+
+        fetchUsers();
+      } catch (error) {
+        toast.error("Failed to delete user");
+        console.log(error);
+      } finally {
+        setIsDeleting(null);
       }
-
-      toast.success("User deleted successfully");
-
-      fetchUsers();
-    } catch (error) {
-      toast.error("Failed to delete user");
-      console.log(error);
-    } finally {
-      setIsDeleting(null);
-    }
-  };
+    },
+    [fetchUsers]
+  );
 
   // Open edit dialog
-  const openEditDialog = (user: User) => {
-    setEditingUser(user);
-    editForm.reset({
-      name: user.name,
-      email: user.email,
-      role: user.role as "admin" | "user",
-      password: "",
-    });
-    setIsEditDialogOpen(true);
-  };
+  const openEditDialog = useCallback(
+    (user: User) => {
+      setEditingUser(user);
+      editForm.reset({
+        name: user.name,
+        email: user.email,
+        role: user.role as "admin" | "user",
+        password: "",
+      });
+      setIsEditDialogOpen(true);
+    },
+    [editForm]
+  );
 
   // Handle search
-  const handleSearch = (value: string) => {
+  const handleSearch = useCallback((value: string) => {
     setSearch(value);
     setPagination((prev) => ({ ...prev, page: 1 }));
-  };
+  }, []);
 
   // Handle filter change
-  const handleFilterChange = () => {
+  const handleFilterChange = useCallback(() => {
     setPagination((prev) => ({ ...prev, page: 1 }));
-  };
+  }, []);
 
   // Handle page change
-  const handlePageChange = (newPage: number) => {
+  const handlePageChange = useCallback((newPage: number) => {
     setPagination((prev) => ({ ...prev, page: newPage }));
-  };
+  }, []);
 
   // Get user initials
   const getUserInitials = (name: string) => {
@@ -314,7 +326,7 @@ export default function AdminUsersPage() {
   // Fetch users on component mount and when filters change
   useEffect(() => {
     fetchUsers();
-  }, [pagination.page, role, search]);
+  }, [fetchUsers]);
 
   return (
     <DashboardShell>
@@ -644,7 +656,7 @@ export default function AdminUsersPage() {
             <DialogHeader>
               <DialogTitle>Edit User</DialogTitle>
               <DialogDescription>
-                Update user information and permissions.
+                Update user information and role.
               </DialogDescription>
             </DialogHeader>
             <Form {...editForm}>
@@ -688,7 +700,7 @@ export default function AdminUsersPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        Password (leave blank to keep current)
+                        Password (Leave blank to keep current)
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -737,10 +749,10 @@ export default function AdminUsersPage() {
                     {isSubmitting ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Updating...
+                        Saving...
                       </>
                     ) : (
-                      "Update User"
+                      "Save Changes"
                     )}
                   </Button>
                 </DialogFooter>

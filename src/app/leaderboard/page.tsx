@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import {
@@ -60,7 +60,7 @@ export default function LeaderboardPage() {
   const [error, setError] = useState("");
 
   // Fetch leaderboard data
-  const fetchLeaderboard = async () => {
+  const fetchLeaderboard = useCallback(async () => {
     setIsLoading(true);
     setError("");
     try {
@@ -80,12 +80,12 @@ export default function LeaderboardPage() {
 
       setData(result);
     } catch (error) {
-      setError(error.message);
+      setError((error as Error).message);
       toast.error("Failed to load leaderboard");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [category, type]); //
 
   // Get rank icon
   const getRankIcon = (rank: number) => {
@@ -142,7 +142,7 @@ export default function LeaderboardPage() {
   // Fetch data on component mount and when filters change
   useEffect(() => {
     fetchLeaderboard();
-  }, [category, type]);
+  }, [fetchLeaderboard]);
 
   return (
     <DashboardShell>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { Button } from "@/components/ui/button";
@@ -79,7 +79,7 @@ export default function PracticePage() {
   const [testsError, setTestsError] = useState("");
 
   // Fetch subjects
-  const fetchSubjects = async () => {
+  const fetchSubjects = useCallback(async () => {
     setIsLoadingSubjects(true);
     setSubjectsError("");
     try {
@@ -98,15 +98,15 @@ export default function PracticePage() {
 
       setSubjects(data.subjects);
     } catch (error) {
-      setSubjectsError(error.message);
+      setSubjectsError((error as Error).message);
       toast.error("Failed to fetch subjects");
     } finally {
       setIsLoadingSubjects(false);
     }
-  };
+  }, [category, searchQuery]);
 
   // Fetch practice tests
-  const fetchPracticeTests = async () => {
+  const fetchPracticeTests = useCallback(async () => {
     setIsLoadingTests(true);
     setTestsError("");
     try {
@@ -122,12 +122,12 @@ export default function PracticePage() {
 
       setPracticeTests(data.practiceTests);
     } catch (error) {
-      setTestsError(error.message);
+      setTestsError((error as Error).message);
       toast.error("Failed to fetch practice tests");
     } finally {
       setIsLoadingTests(false);
     }
-  };
+  }, [category]);
 
   // Start custom practice session
   const startCustomPractice = async () => {
@@ -175,7 +175,7 @@ export default function PracticePage() {
   useEffect(() => {
     fetchSubjects();
     fetchPracticeTests();
-  }, [category]);
+  }, [fetchSubjects, fetchPracticeTests]);
 
   // Fetch subjects when search query changes (with debounce)
   useEffect(() => {
@@ -184,7 +184,7 @@ export default function PracticePage() {
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
+  }, [searchQuery, fetchSubjects]);
 
   return (
     <DashboardShell>

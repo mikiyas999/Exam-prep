@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import {
@@ -84,7 +84,7 @@ export default function ProgressPage() {
   const [error, setError] = useState("");
 
   // Fetch progress stats
-  const fetchProgressStats = async () => {
+  const fetchProgressStats = useCallback(async () => {
     setIsLoading(true);
     setError("");
     try {
@@ -105,7 +105,7 @@ export default function ProgressPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [timeframe]);
 
   // Get category display name
   const getCategoryDisplayName = (category: string) => {
@@ -138,7 +138,7 @@ export default function ProgressPage() {
   // Fetch stats on component mount and when timeframe changes
   useEffect(() => {
     fetchProgressStats();
-  }, [timeframe]);
+  }, [fetchProgressStats]);
 
   return (
     <DashboardShell>
