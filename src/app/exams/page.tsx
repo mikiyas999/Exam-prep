@@ -117,11 +117,17 @@ export default function ExamsPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Select value={category} onValueChange={setCategory}>
+              <Select
+                value={category || "all"}
+                onValueChange={(value) =>
+                  setCategory(value === "all" ? "" : value)
+                }
+              >
                 <SelectTrigger className="w-full md:w-[200px]">
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
                   <SelectItem value="amt">AMT</SelectItem>
                   <SelectItem value="hostess">Cabin Crew</SelectItem>
                   <SelectItem value="pilot">Pilot</SelectItem>

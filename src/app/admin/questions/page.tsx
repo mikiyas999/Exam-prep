@@ -195,10 +195,11 @@ export default function QuestionsPage() {
               />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 lg:flex lg:items-center lg:space-x-2">
+              {/* Category Filter */}
               <Select
-                value={category}
+                value={category || "all"}
                 onValueChange={(value) => {
-                  setCategory(value);
+                  setCategory(value === "all" ? "" : value);
                   handleFilterChange();
                 }}
               >
@@ -206,15 +207,18 @@ export default function QuestionsPage() {
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
                   <SelectItem value="amt">AMT</SelectItem>
                   <SelectItem value="hostess">Hostess</SelectItem>
                   <SelectItem value="pilot">Pilot</SelectItem>
                 </SelectContent>
               </Select>
+
+              {/* Question Type Filter */}
               <Select
-                value={questionType}
+                value={questionType || "all"}
                 onValueChange={(value) => {
-                  setQuestionType(value);
+                  setQuestionType(value === "all" ? "" : value);
                   handleFilterChange();
                 }}
               >
@@ -222,16 +226,19 @@ export default function QuestionsPage() {
                   <SelectValue placeholder="Question Type" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="math">Math</SelectItem>
                   <SelectItem value="reading">Reading</SelectItem>
                   <SelectItem value="mechanical">Mechanical</SelectItem>
                   <SelectItem value="abstract">Abstract Reasoning</SelectItem>
                 </SelectContent>
               </Select>
+
+              {/* Difficulty Filter */}
               <Select
-                value={difficulty}
+                value={difficulty || "all"}
                 onValueChange={(value) => {
-                  setDifficulty(value);
+                  setDifficulty(value === "all" ? "" : value);
                   handleFilterChange();
                 }}
               >
@@ -239,6 +246,7 @@ export default function QuestionsPage() {
                   <SelectValue placeholder="Difficulty" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">All Levels</SelectItem>
                   <SelectItem value="easy">Easy</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
                   <SelectItem value="hard">Hard</SelectItem>

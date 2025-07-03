@@ -164,11 +164,17 @@ export default function LeaderboardPage() {
             <div className="flex flex-col space-y-4 md:flex-row md:items-center md:space-x-4 md:space-y-0">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Category</label>
-                <Select value={category} onValueChange={setCategory}>
+                <Select
+                  value={category || "all"}
+                  onValueChange={(value) =>
+                    setCategory(value === "all" ? "" : value)
+                  }
+                >
                   <SelectTrigger className="w-full md:w-[200px]">
                     <SelectValue placeholder="All Categories" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
                     <SelectItem value="amt">AMT</SelectItem>
                     <SelectItem value="hostess">Cabin Crew</SelectItem>
                     <SelectItem value="pilot">Pilot</SelectItem>
@@ -180,7 +186,7 @@ export default function LeaderboardPage() {
                 <label className="text-sm font-medium">Ranking Type</label>
                 <Select value={type} onValueChange={setType}>
                   <SelectTrigger className="w-full md:w-[200px]">
-                    <SelectValue />
+                    <SelectValue placeholder="Select Type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="practice">

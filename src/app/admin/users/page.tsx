@@ -477,9 +477,9 @@ export default function AdminUsersPage() {
                 />
               </div>
               <Select
-                value={role}
+                value={role || "all"}
                 onValueChange={(value) => {
-                  setRole(value);
+                  setRole(value === "all" ? "" : value);
                   handleFilterChange();
                 }}
               >
@@ -487,6 +487,7 @@ export default function AdminUsersPage() {
                   <SelectValue placeholder="Role" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">All Roles</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="user">User</SelectItem>
                 </SelectContent>
