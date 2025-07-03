@@ -8,7 +8,7 @@ import { examQuestions, exams } from "@/db/schema";
 import { db } from "@/db/drizzle";
 
 const updateExamSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters").optional(),
+  title: z.string().min(3).optional(),
   description: z.string().optional(),
   category: z.enum(["pilot", "hostess", "amt"]).optional(),
   questionTypes: z
@@ -21,7 +21,7 @@ const updateExamSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -29,12 +29,11 @@ export async function GET(
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const examId = parseInt(params.id);
+    const examId = parseInt(context.params.id);
     if (isNaN(examId)) {
       return NextResponse.json({ message: "Invalid exam ID" }, { status: 400 });
     }
 
-    // Get exam details
     const exam = await db
       .select()
       .from(exams)
@@ -45,7 +44,6 @@ export async function GET(
       return NextResponse.json({ message: "Exam not found" }, { status: 404 });
     }
 
-    // Get exam questions
     const examQuestionsData = await db
       .select({
         questionId: examQuestions.questionId,
@@ -59,7 +57,7 @@ export async function GET(
       success: true,
       exam: {
         ...exam[0],
-        questionIds: examQuestionsData.map((eq) => eq.questionId),
+        questionIds: examQuestionsData.map((q) => q.questionId),
       },
     });
   } catch (error) {
@@ -73,7 +71,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -81,7 +79,7 @@ export async function PUT(
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const examId = parseInt(params.id);
+    const examId = parseInt(context.params.id);
     if (isNaN(examId)) {
       return NextResponse.json({ message: "Invalid exam ID" }, { status: 400 });
     }
@@ -89,7 +87,6 @@ export async function PUT(
     const body = await request.json();
     const { questionIds, ...examData } = updateExamSchema.parse(body);
 
-    // Check if exam exists
     const existingExam = await db
       .select()
       .from(exams)
@@ -100,7 +97,6 @@ export async function PUT(
       return NextResponse.json({ message: "Exam not found" }, { status: 404 });
     }
 
-    // Update exam
     const updatedExam = await db
       .update(exams)
       .set({
@@ -110,12 +106,9 @@ export async function PUT(
       .where(eq(exams.id, examId))
       .returning();
 
-    // Update questions if provided
     if (questionIds) {
-      // Delete existing exam questions
       await db.delete(examQuestions).where(eq(examQuestions.examId, examId));
 
-      // Add new questions
       if (questionIds.length > 0) {
         const examQuestionEntries = questionIds.map((questionId, index) => ({
           examId,
@@ -150,7 +143,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -158,12 +151,11 @@ export async function DELETE(
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const examId = parseInt(params.id);
+    const examId = parseInt(context.params.id);
     if (isNaN(examId)) {
       return NextResponse.json({ message: "Invalid exam ID" }, { status: 400 });
     }
 
-    // Check if exam exists
     const existingExam = await db
       .select()
       .from(exams)
@@ -174,10 +166,7 @@ export async function DELETE(
       return NextResponse.json({ message: "Exam not found" }, { status: 404 });
     }
 
-    // Delete exam questions first
     await db.delete(examQuestions).where(eq(examQuestions.examId, examId));
-
-    // Delete exam
     await db.delete(exams).where(eq(exams.id, examId));
 
     return NextResponse.json({

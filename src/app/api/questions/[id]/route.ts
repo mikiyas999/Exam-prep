@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -76,6 +76,7 @@ export async function PUT(
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
+    const { params } = context;
     const questionId = parseInt(params.id);
     if (isNaN(questionId)) {
       return NextResponse.json(
@@ -133,7 +134,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -141,6 +142,7 @@ export async function DELETE(
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
+    const { params } = context;
     const questionId = parseInt(params.id);
     if (isNaN(questionId)) {
       return NextResponse.json(
