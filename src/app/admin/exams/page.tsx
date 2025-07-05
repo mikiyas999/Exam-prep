@@ -69,6 +69,7 @@ interface Exam {
 
 interface ExamsResponse {
   success: boolean;
+  message?: string;
   exams: Exam[];
   pagination: {
     page: number;
