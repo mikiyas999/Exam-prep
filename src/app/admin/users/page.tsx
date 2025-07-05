@@ -84,6 +84,7 @@ interface User {
 
 interface UsersResponse {
   success: boolean;
+  message?: string;
   users: User[];
   pagination: {
     page: number;
