@@ -91,7 +91,7 @@ export default function NewQuestionPage() {
   const [image, setImage] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string>("");
   const [csvFile, setCsvFile] = useState<File | null>(null);
-  const [bulkQuestions, setBulkQuestions] = useState<[]>([]);
+  const [bulkQuestions, setBulkQuestions] = useState<any[]>([]);
   const [bulkErrors, setBulkErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isBulkSubmitting, setIsBulkSubmitting] = useState(false);
