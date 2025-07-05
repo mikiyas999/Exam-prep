@@ -26,7 +26,14 @@ const updateQuestionSchema = z.object({
   difficulty: z.enum(["easy", "medium", "hard"]).optional(),
 });
 
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest,
+  {
+    params,
+  }: {
+    params: Promise<{ id: string }>;
+  }
+) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
@@ -68,7 +75,11 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(
   request: NextRequest,
-  context: { params: { id: string } }
+  {
+    params,
+  }: {
+    params: Promise<{ id: string }>;
+  }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -76,8 +87,8 @@ export async function PUT(
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { params } = context;
-    const questionId = parseInt(params.id);
+    const { id } = await params;
+    const questionId = parseInt(id);
     if (isNaN(questionId)) {
       return NextResponse.json(
         { message: "Invalid question ID" },
@@ -134,7 +145,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -142,8 +153,8 @@ export async function DELETE(
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { params } = context;
-    const questionId = parseInt(params.id);
+    const { id } = await params;
+    const questionId = parseInt(id);
     if (isNaN(questionId)) {
       return NextResponse.json(
         { message: "Invalid question ID" },

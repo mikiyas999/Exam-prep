@@ -6,20 +6,18 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { examQuestions, exams, questions } from "@/db/schema";
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest, context: any) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-    const url = request.nextUrl;
-    const idParam = url.pathname.split("/").pop();
-    const examId = parseInt(idParam ?? "");
+
+    const examId = parseInt(context.params.id);
     if (isNaN(examId)) {
       return NextResponse.json({ message: "Invalid exam ID" }, { status: 400 });
     }
 
-    // Get exam details
     const exam = await db
       .select()
       .from(exams)
@@ -30,7 +28,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: "Exam not found" }, { status: 404 });
     }
 
-    // Get exam questions with question details
     const examQuestionsData = await db
       .select({
         questionId: examQuestions.questionId,

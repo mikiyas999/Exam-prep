@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
       },
       exams: {
         totalExams: exam.totalExams,
-        averageScore: Math.round(exam.averageScore || 0),
+        averageScore: Math.round(Number(exam.averageScore) || 0),
         bestScore: exam.bestScore || 0,
       },
       byCategory: categoryStats.map((stat) => ({

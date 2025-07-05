@@ -6,6 +6,7 @@ import { questions } from "@/db/schema";
 import { eq, and, like, desc, count } from "drizzle-orm";
 import { z } from "zod";
 
+// Validation schema for creating a question
 const createQuestionSchema = z.object({
   questionText: z
     .string()
@@ -29,6 +30,7 @@ const createQuestionSchema = z.object({
   }),
 });
 
+// Validation schema for query filters
 const querySchema = z.object({
   category: z.enum(["pilot", "hostess", "amt"]).optional(),
   questionType: z
@@ -40,6 +42,7 @@ const querySchema = z.object({
   limit: z.string().optional(),
 });
 
+// GET /api/questions
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -61,7 +64,6 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(query.limit || "10");
     const offset = (page - 1) * limit;
 
-    // Build where conditions
     const conditions = [];
 
     if (query.category) {
@@ -101,7 +103,6 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .offset(offset);
 
-    // Get total count for pagination
     const totalCountResult = await db
       .select({ count: count() })
       .from(questions)
@@ -128,28 +129,42 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// POST /api/questions
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    console.log({ session });
     if (!session || session.user.role !== "admin") {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
-    const { optionA, optionB, optionC, imageUrl, ...rest } =
-      createQuestionSchema.parse(body);
+    const {
+      questionText,
+      optionA,
+      optionB,
+      optionC,
+      correctAnswer,
+      explanation,
+      questionType,
+      category,
+      difficulty,
+      imageUrl,
+    } = createQuestionSchema.parse(body);
 
-    // Convert individual options to array format
     const options = [optionA, optionB, optionC];
 
     const newQuestion = await db
       .insert(questions)
       .values({
-        ...rest,
+        questionText,
         options,
+        correctAnswer,
+        explanation,
+        questionType,
+        category,
+        difficulty,
         imageUrl: imageUrl || null,
-        createdBy: parseInt(session.user.id),
+        createdBy: session.user.id,
       })
       .returning();
 

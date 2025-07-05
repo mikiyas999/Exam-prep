@@ -20,7 +20,7 @@ const updateUserSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -28,8 +28,8 @@ export async function GET(
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { params } = context;
-    const userId = parseInt(params.id);
+    const { id } = await params;
+    const userId = parseInt(id);
     if (isNaN(userId)) {
       return NextResponse.json({ message: "Invalid user ID" }, { status: 400 });
     }
@@ -65,15 +65,19 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  context: { params: { id: string } }
+  {
+    params,
+  }: {
+    params: Promise<{ id: string }>;
+  }
 ) {
   try {
     const session = await getServerSession(authOptions);
     if (!session || session.user.role !== "admin") {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-    const { params } = context;
-    const userId = parseInt(params.id);
+    const { id } = await params;
+    const userId = parseInt(id);
     if (isNaN(userId)) {
       return NextResponse.json({ message: "Invalid user ID" }, { status: 400 });
     }
@@ -153,16 +157,20 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string } }
+  {
+    params,
+  }: {
+    params: Promise<{ id: string }>;
+  }
 ) {
   try {
     const session = await getServerSession(authOptions);
     if (!session || session.user.role !== "admin") {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
+    const { id } = await params;
 
-    const { params } = context;
-    const userId = parseInt(params.id);
+    const userId = parseInt(id);
     if (isNaN(userId)) {
       return NextResponse.json({ message: "Invalid user ID" }, { status: 400 });
     }
