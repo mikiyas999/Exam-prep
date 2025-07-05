@@ -85,6 +85,7 @@ interface Question {
 
 interface QuestionsResponse {
   success: boolean;
+  message?: string;
   questions: Question[];
   pagination: {
     page: number;
@@ -228,9 +229,391 @@ export default function NewExamPage() {
     return colors[difficulty as keyof typeof colors] || "bg-gray-500";
   };
 
-  // ⚡ Continue rendering part is unchanged
-  // Just keep your full JSX render section from the original code
-  // It works perfectly — the main fix was wrapping `fetchQuestions` in `useCallback`
+  return (
+    <DashboardShell>
+      <DashboardHeader
+        heading="Create New Exam"
+        text="Set up a new exam with selected questions."
+      >
+        <Button variant="outline" onClick={() => router.push("/admin/exams")}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Exams
+        </Button>
+      </DashboardHeader>
 
-  // If you want, I can paste the full JSX render part again here — let me know!
+      <div className="mt-6 space-y-6">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Exam Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Exam Details</CardTitle>
+                <CardDescription>
+                  Configure the basic information for your exam.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Exam Title</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter exam title..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select category" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="amt">AMT</SelectItem>
+                            <SelectItem value="hostess">Cabin Crew</SelectItem>
+                            <SelectItem value="pilot">Pilot</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description (Optional)</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Enter exam description..."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="difficulty"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Overall Difficulty (Optional)</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select difficulty" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="easy">Easy</SelectItem>
+                            <SelectItem value="medium">Medium</SelectItem>
+                            <SelectItem value="hard">Hard</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="timeLimit"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Time Limit (minutes)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="300"
+                            placeholder="60"
+                            {...field}
+                            onChange={(e) =>
+                              field.onChange(
+                                parseInt(e.target.value) || undefined
+                              )
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Question Selection */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Select Questions</CardTitle>
+                <CardDescription>
+                  Choose questions to include in this exam.{" "}
+                  {selectedQuestions.length} questions selected.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Question Filters */}
+                <div className="grid gap-4 md:grid-cols-4">
+                  <div className="space-y-2">
+                    <Label>Search Questions</Label>
+                    <div className="relative">
+                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search..."
+                        value={questionSearch}
+                        onChange={(e) => setQuestionSearch(e.target.value)}
+                        className="pl-8"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Question Type</Label>
+                    <Select
+                      value={questionType || "all"}
+                      onValueChange={(val) =>
+                        setQuestionType(val === "all" ? "" : val)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Types" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value="math">Mathematics</SelectItem>
+                        <SelectItem value="reading">Reading</SelectItem>
+                        <SelectItem value="mechanical">Mechanical</SelectItem>
+                        <SelectItem value="abstract">Abstract</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Difficulty</Label>
+                    <Select
+                      value={questionDifficulty || "all"}
+                      onValueChange={(val) =>
+                        setQuestionDifficulty(val === "all" ? "" : val)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Difficulties" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Difficulties</SelectItem>
+                        <SelectItem value="easy">Easy</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="hard">Hard</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Actions</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleSelectAll}
+                      className="w-full"
+                    >
+                      {selectedQuestions.length === availableQuestions.length
+                        ? "Deselect All"
+                        : "Select All"}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Selected Questions Summary */}
+                {selectedQuestions.length > 0 && (
+                  <Alert>
+                    <CheckCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      <strong>
+                        {selectedQuestions.length} questions selected
+                      </strong>
+                      {form.watch("timeLimit") && (
+                        <span>
+                          {" "}
+                          • Estimated time: {form.watch("timeLimit")} minutes
+                        </span>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Questions Error */}
+                {questionsError && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{questionsError}</AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Questions Table */}
+                <div className="rounded-md border">
+                  {isLoadingQuestions ? (
+                    <div className="flex items-center justify-center p-8">
+                      <Loader2 className="h-8 w-8 animate-spin" />
+                      <span className="ml-2">Loading questions...</span>
+                    </div>
+                  ) : availableQuestions.length === 0 ? (
+                    <div className="text-center p-8 text-muted-foreground">
+                      No questions found.{" "}
+                      {watchedCategory
+                        ? `Try selecting a different category or `
+                        : ""}
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="p-0 h-auto"
+                        onClick={() => router.push("/admin/questions/new")}
+                      >
+                        create some questions first
+                      </Button>
+                      .
+                    </div>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-12">
+                            <Checkbox
+                              checked={
+                                selectedQuestions.length ===
+                                  availableQuestions.length &&
+                                availableQuestions.length > 0
+                              }
+                              onCheckedChange={handleSelectAll}
+                            />
+                          </TableHead>
+                          <TableHead className="min-w-[300px]">
+                            Question
+                          </TableHead>
+                          <TableHead className="min-w-[100px]">Type</TableHead>
+                          <TableHead className="min-w-[100px]">
+                            Difficulty
+                          </TableHead>
+                          <TableHead className="min-w-[100px]">
+                            Category
+                          </TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {availableQuestions.map((question) => (
+                          <TableRow key={question.id}>
+                            <TableCell>
+                              <Checkbox
+                                checked={selectedQuestions.includes(
+                                  question.id
+                                )}
+                                onCheckedChange={(checked) =>
+                                  handleQuestionSelect(
+                                    question.id,
+                                    checked as boolean
+                                  )
+                                }
+                              />
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              <div className="max-w-md">
+                                <div
+                                  className="truncate"
+                                  title={question.questionText}
+                                >
+                                  {question.questionText}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  ID: {question.id}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="secondary" className="capitalize">
+                                {question.questionType}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                className={getDifficultyColor(
+                                  question.difficulty
+                                )}
+                              >
+                                {question.difficulty}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="capitalize">
+                                {getCategoryDisplayName(question.category)}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Submit */}
+            <Card>
+              <CardFooter className="flex flex-col space-y-2 sm:flex-row sm:justify-between sm:space-y-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.push("/admin/exams")}
+                  className="w-full sm:w-auto"
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="w-full sm:w-auto"
+                  disabled={isSubmitting || selectedQuestions.length === 0}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating Exam...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Create Exam ({selectedQuestions.length} questions)
+                    </>
+                  )}
+                </Button>
+              </CardFooter>
+            </Card>
+          </form>
+        </Form>
+      </div>
+    </DashboardShell>
+  );
 }
