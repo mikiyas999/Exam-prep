@@ -58,6 +58,7 @@ interface Question {
 
 interface QuestionsResponse {
   success: boolean;
+  message?: string;
   questions: Question[];
   pagination: {
     page: number;
